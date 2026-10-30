@@ -1,0 +1,1531 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FABREC | Administrador de Datos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f7f8fa;
+      --surface: #ffffff;
+      --surface-2: #fbfcfd;
+      --border: #e8ebef;
+      --border-strong: #d4d9df;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --text-soft: #94a3b8;
+      --primary: #2563eb;
+      --primary-subtle: #eff6ff;
+      --primary-border: #bfdbfe;
+      --success: #059669;
+      --success-subtle: #ecfdf5;
+      --success-border: #a7f3d0;
+      --amber: #d97706;
+      --amber-subtle: #fffbeb;
+      --amber-border: #fde68a;
+      --rose: #e11d48;
+      --rose-subtle: #fff1f2;
+      --rose-border: #fecdd3;
+      --purple: #7c3aed;
+      --purple-subtle: #f5f3ff;
+      --purple-border: #ddd6fe;
+      --radius: 14px;
+      --radius-sm: 10px;
+      --radius-xs: 8px;
+      --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
+      --shadow-md: 0 4px 14px rgba(15, 23, 42, 0.06);
+      --shadow-lg: 0 12px 32px rgba(15, 23, 42, 0.14);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    html, body {
+      font-family: 'Montserrat', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ==========================================
+       HEADER
+    ========================================== */
+    .top-bar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 24px;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      backdrop-filter: blur(10px);
+    }
+    .top-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .brand-block { display: flex; align-items: center; gap: 12px; }
+    .brand-logo {
+      width: 38px; height: 38px; border-radius: 11px;
+      background: linear-gradient(135deg, var(--primary), var(--purple));
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+    }
+    .brand-logo svg { width: 20px; height: 20px; stroke: #fff; fill: none; stroke-width: 2.2; }
+    .brand-text { display: flex; flex-direction: column; gap: 2px; }
+    .brand-title { font-size: 15px; font-weight: 900; letter-spacing: 1px; }
+    .brand-sub { font-size: 10.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.6px; }
+
+    .top-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+    .btn {
+      display: inline-flex; align-items: center; gap: 7px;
+      font-family: inherit; font-size: 11.5px; font-weight: 800;
+      padding: 9px 14px; border-radius: 10px;
+      border: 1px solid transparent; cursor: pointer;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+      text-decoration: none;
+    }
+    .btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2.2; }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: #1d4ed8; }
+    .btn-outline { background: var(--surface); border-color: var(--border); color: var(--text); }
+    .btn-outline:hover { background: var(--bg); border-color: var(--border-strong); }
+    .btn-rose { background: var(--surface); border-color: var(--rose-border); color: var(--rose); }
+    .btn-rose:hover { background: var(--rose-subtle); }
+    .btn-ghost { background: transparent; color: var(--text-muted); }
+    .btn-ghost:hover { background: var(--bg); color: var(--text); }
+
+    .storage-mini {
+      display: flex; flex-direction: column; gap: 4px;
+      font-size: 10px; font-weight: 700; color: var(--text-muted);
+      min-width: 160px;
+    }
+    .storage-bar {
+      width: 100%; height: 5px; background: var(--border);
+      border-radius: 999px; overflow: hidden;
+    }
+    .storage-fill {
+      height: 100%; background: linear-gradient(90deg, var(--primary), var(--purple));
+      border-radius: 999px; transition: width 0.5s ease;
+    }
+
+    /* ==========================================
+       MAIN
+    ========================================== */
+    .main {
+      max-width: 1200px; margin: 0 auto; padding: 24px;
+    }
+
+    .breadcrumb {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 11.5px; font-weight: 700;
+      color: var(--text-muted);
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+    .breadcrumb-item {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 10px; border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .breadcrumb-item:hover { background: var(--surface); color: var(--text); }
+    .breadcrumb-item.active { color: var(--text); background: var(--surface); }
+    .breadcrumb-sep {
+      width: 12px; height: 12px; stroke: var(--text-soft); fill: none; stroke-width: 2.5;
+    }
+
+    .view-header {
+      display: flex; justify-content: space-between; align-items: flex-end;
+      gap: 16px; margin-bottom: 20px; flex-wrap: wrap;
+    }
+    .view-title-wrap { display: flex; flex-direction: column; gap: 4px; }
+    .view-title { font-size: 22px; font-weight: 900; letter-spacing: -0.5px; }
+    .view-subtitle { font-size: 12.5px; font-weight: 600; color: var(--text-muted); }
+
+    .view-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    /* ==========================================
+       DB CARDS GRID
+    ========================================== */
+    .db-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 14px;
+    }
+
+    .db-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+      overflow: hidden;
+      display: flex; flex-direction: column; gap: 14px;
+    }
+    .db-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0;
+      width: 100%; height: 3px;
+      background: var(--primary);
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+    .db-card:hover {
+      border-color: var(--primary-border);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+    .db-card:hover::before { opacity: 1; }
+    .db-card.fabrec::before { opacity: 0.35; }
+    .db-card.fabrec:hover::before { opacity: 1; }
+
+    .db-card-top {
+      display: flex; align-items: center; gap: 12px;
+    }
+    .db-icon {
+      width: 42px; height: 42px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      background: var(--primary-subtle);
+      color: var(--primary);
+    }
+    .db-icon svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2; }
+    .db-card.fabrec .db-icon { background: linear-gradient(135deg, var(--primary), var(--purple)); color: #fff; }
+
+    .db-info { flex: 1; min-width: 0; }
+    .db-name {
+      font-size: 13.5px; font-weight: 800; letter-spacing: -0.2px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .db-app-label {
+      font-size: 10px; font-weight: 800; text-transform: uppercase;
+      letter-spacing: 0.5px; color: var(--primary);
+      display: inline-flex; align-items: center; gap: 4px;
+      margin-top: 3px;
+    }
+    .db-app-label svg { width: 10px; height: 10px; stroke: currentColor; fill: none; stroke-width: 2.5; }
+
+    .db-stats {
+      display: flex; gap: 8px; flex-wrap: wrap;
+    }
+    .db-stat {
+      flex: 1; min-width: 80px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      display: flex; flex-direction: column; gap: 3px;
+    }
+    .db-stat-label { font-size: 9.5px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.3px; }
+    .db-stat-value { font-size: 14px; font-weight: 900; letter-spacing: -0.3px; color: var(--text); }
+
+    /* ==========================================
+       STORE LIST
+    ========================================== */
+    .store-list { display: flex; flex-direction: column; gap: 10px; }
+
+    .store-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      display: flex; align-items: center; gap: 14px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .store-card:hover {
+      border-color: var(--primary-border);
+      box-shadow: var(--shadow-sm);
+    }
+    .store-icon {
+      width: 36px; height: 36px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      background: var(--success-subtle);
+      color: var(--success);
+    }
+    .store-icon svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 2.2; }
+    .store-info { flex: 1; min-width: 0; }
+    .store-name {
+      font-size: 13px; font-weight: 800; letter-spacing: -0.1px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .store-meta { font-size: 11px; font-weight: 600; color: var(--text-muted); margin-top: 2px; }
+    .store-arrow {
+      width: 15px; height: 15px; stroke: var(--text-soft);
+      fill: none; stroke-width: 2.4; stroke-linecap: round;
+      flex-shrink: 0;
+    }
+
+    /* ==========================================
+       ENTRIES TOOLBAR
+    ========================================== */
+    .toolbar {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+    .search-wrap {
+      flex: 1; min-width: 200px;
+      position: relative;
+      display: flex; align-items: center;
+    }
+    .search-wrap svg {
+      position: absolute; left: 12px;
+      width: 14px; height: 14px; stroke: var(--text-soft);
+      fill: none; stroke-width: 2.2; pointer-events: none;
+    }
+    .search-input {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 9px 12px 9px 34px;
+      font-family: inherit;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--text);
+      outline: none;
+      transition: all 0.15s ease;
+    }
+    .search-input::placeholder { color: var(--text-soft); }
+    .search-input:focus {
+      border-color: var(--primary);
+      background: var(--surface);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+    .toolbar-count {
+      font-size: 11px; font-weight: 800; color: var(--text-muted);
+      padding: 0 6px;
+    }
+
+    /* ==========================================
+       ENTRIES LIST
+    ========================================== */
+    .entries-list {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .entry-row {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 12px;
+      cursor: pointer;
+      transition: background 0.12s ease;
+    }
+    .entry-row:last-child { border-bottom: none; }
+    .entry-row:hover { background: var(--surface-2); }
+
+    .entry-icon {
+      width: 34px; height: 34px; border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      background: var(--bg);
+      color: var(--text-muted);
+    }
+    .entry-icon svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2.2; }
+
+    .entry-info { flex: 1; min-width: 0; }
+    .entry-key {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 12px; font-weight: 800; color: var(--text);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .entry-preview {
+      font-size: 11px; font-weight: 600; color: var(--text-muted);
+      margin-top: 3px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .entry-badges {
+      display: flex; align-items: center; gap: 6px;
+      flex-shrink: 0;
+    }
+    .badge {
+      font-size: 9.5px; font-weight: 800;
+      padding: 3px 8px; border-radius: 6px;
+      text-transform: uppercase; letter-spacing: 0.3px;
+      display: inline-flex; align-items: center; gap: 4px;
+      white-space: nowrap;
+    }
+    .badge svg { width: 9px; height: 9px; stroke: currentColor; fill: none; stroke-width: 2.6; }
+    .badge-obj { background: var(--primary-subtle); color: var(--primary); border: 1px solid var(--primary-border); }
+    .badge-arr { background: var(--purple-subtle); color: var(--purple); border: 1px solid var(--purple-border); }
+    .badge-str { background: var(--success-subtle); color: var(--success); border: 1px solid var(--success-border); }
+    .badge-num { background: var(--amber-subtle); color: var(--amber); border: 1px solid var(--amber-border); }
+    .badge-bool { background: var(--amber-subtle); color: var(--amber); border: 1px solid var(--amber-border); }
+    .badge-null { background: var(--bg); color: var(--text-soft); border: 1px solid var(--border); }
+    .badge-size { background: var(--bg); color: var(--text-muted); border: 1px solid var(--border); }
+
+    .entry-arrow {
+      width: 14px; height: 14px; stroke: var(--text-soft);
+      fill: none; stroke-width: 2.4; stroke-linecap: round;
+      flex-shrink: 0;
+    }
+
+    /* ==========================================
+       EMPTY STATE
+    ========================================== */
+    .empty-state {
+      background: var(--surface);
+      border: 1px dashed var(--border-strong);
+      border-radius: var(--radius);
+      padding: 48px 24px;
+      text-align: center;
+      display: flex; flex-direction: column; align-items: center; gap: 12px;
+    }
+    .empty-icon {
+      width: 52px; height: 52px; border-radius: 15px;
+      background: var(--bg);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .empty-icon svg { width: 24px; height: 24px; stroke: var(--text-soft); fill: none; stroke-width: 1.8; }
+    .empty-title { font-size: 14px; font-weight: 800; color: var(--text); }
+    .empty-sub { font-size: 12px; font-weight: 600; color: var(--text-muted); max-width: 340px; line-height: 1.55; }
+
+    /* ==========================================
+       MODAL
+    ========================================== */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(15, 23, 42, 0.5);
+      backdrop-filter: blur(4px);
+      z-index: 100;
+      display: none;
+      align-items: center; justify-content: center;
+      padding: 20px;
+    }
+    .modal-overlay.open { display: flex; }
+
+    .modal {
+      background: var(--surface);
+      border-radius: 18px;
+      width: 100%; max-width: 720px;
+      max-height: 90vh;
+      display: flex; flex-direction: column;
+      overflow: hidden;
+      box-shadow: var(--shadow-lg);
+      animation: modalIn 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes modalIn {
+      from { opacity: 0; transform: scale(0.96) translateY(8px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .modal-head {
+      padding: 18px 22px;
+      border-bottom: 1px solid var(--border);
+      display: flex; justify-content: space-between; align-items: flex-start;
+      gap: 12px;
+    }
+    .modal-head-info { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+    .modal-title { font-size: 15px; font-weight: 900; letter-spacing: -0.2px; }
+    .modal-key {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 11px; font-weight: 700; color: var(--text-muted);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .modal-close {
+      background: var(--bg); border: none;
+      width: 34px; height: 34px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: var(--text-muted);
+      transition: all 0.15s ease;
+      flex-shrink: 0;
+    }
+    .modal-close:hover { background: var(--border); color: var(--text); }
+    .modal-close svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2.4; }
+
+    .modal-body {
+      padding: 22px;
+      overflow-y: auto;
+      display: flex; flex-direction: column; gap: 14px;
+    }
+
+    .modal-actions {
+      padding: 14px 22px;
+      border-top: 1px solid var(--border);
+      background: var(--surface-2);
+      display: flex; justify-content: space-between; gap: 10px;
+      flex-wrap: wrap;
+    }
+    .modal-actions-right { display: flex; gap: 10px; margin-left: auto; flex-wrap: wrap; }
+
+    .entry-toolbar {
+      display: flex; gap: 8px; align-items: center;
+      flex-wrap: wrap;
+    }
+    .seg {
+      display: inline-flex; background: var(--bg);
+      border: 1px solid var(--border); border-radius: 10px;
+      padding: 3px; gap: 2px;
+    }
+    .seg button {
+      background: transparent; border: none;
+      padding: 6px 12px; border-radius: 7px;
+      font-family: inherit; font-size: 11px; font-weight: 800;
+      color: var(--text-muted); cursor: pointer;
+      transition: all 0.15s ease;
+      display: inline-flex; align-items: center; gap: 5px;
+    }
+    .seg button.active {
+      background: var(--surface); color: var(--text);
+      box-shadow: var(--shadow-sm);
+    }
+    .seg button svg { width: 12px; height: 12px; stroke: currentColor; fill: none; stroke-width: 2.2; }
+
+    .code-view {
+      background: #0f172a;
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      overflow: auto;
+      max-height: 55vh;
+      border: 1px solid #1e293b;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 12px;
+      line-height: 1.65;
+      color: #e2e8f0;
+      white-space: pre;
+      tab-size: 2;
+    }
+    .json-key { color: #7dd3fc; }
+    .json-string { color: #a5f3fc; }
+    .json-number { color: #fbbf24; }
+    .json-boolean { color: #f472b6; }
+    .json-null { color: #94a3b8; }
+    .json-punct { color: #64748b; }
+
+    .json-edit {
+      width: 100%; min-height: 300px; max-height: 55vh;
+      background: #0f172a;
+      border: 1px solid #1e293b;
+      border-radius: var(--radius-sm);
+      padding: 14px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 12px;
+      line-height: 1.65;
+      color: #e2e8f0;
+      resize: vertical;
+      outline: none;
+      tab-size: 2;
+    }
+    .json-edit:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.2); }
+
+    .str-value-box {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 14px;
+      font-size: 12.5px; line-height: 1.6; font-weight: 600;
+      color: var(--text);
+      white-space: pre-wrap; word-break: break-word;
+      max-height: 55vh; overflow-y: auto;
+    }
+
+    .warning-box {
+      background: var(--rose-subtle);
+      border: 1px solid var(--rose-border);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      display: flex; gap: 10px;
+      font-size: 11.5px; font-weight: 700; color: #7f1d1d;
+      line-height: 1.5;
+    }
+    .warning-box svg { width: 18px; height: 18px; stroke: var(--rose); fill: none; stroke-width: 2.2; flex-shrink: 0; margin-top: 1px; }
+
+    /* ==========================================
+       TOAST
+    ========================================== */
+    .toast {
+      position: fixed; bottom: 24px; left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: #0f172a; color: #fff;
+      padding: 12px 18px; border-radius: 12px;
+      font-size: 12.5px; font-weight: 700;
+      display: flex; align-items: center; gap: 8px;
+      z-index: 200; opacity: 0; pointer-events: none;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: var(--shadow-lg);
+      max-width: calc(100vw - 40px);
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+    .toast svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2.5; flex-shrink: 0; }
+    .toast.success { background: var(--success); }
+    .toast.error { background: var(--rose); }
+
+    /* ==========================================
+       RESPONSIVE
+    ========================================== */
+    @media (max-width: 720px) {
+      .top-bar { padding: 12px 16px; }
+      .main { padding: 16px; }
+      .storage-mini { display: none; }
+      .brand-sub { display: none; }
+      .view-title { font-size: 18px; }
+      .db-grid { grid-template-columns: 1fr; }
+      .modal { max-height: 94vh; border-radius: 16px 16px 0 0; align-self: flex-end; }
+      .modal-overlay { padding: 0; align-items: flex-end; }
+      .entry-row { padding: 12px 14px; gap: 10px; }
+      .entry-badges { display: none; }
+      .toolbar { padding: 10px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="top-bar">
+    <div class="top-inner">
+      <div class="brand-block">
+        <div class="brand-logo">
+          <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/><path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3"/></svg>
+        </div>
+        <div class="brand-text">
+          <div class="brand-title">FABREC</div>
+          <div class="brand-sub">Administrador de Datos</div>
+        </div>
+      </div>
+
+      <div class="top-actions">
+        <div class="storage-mini">
+          <div style="display:flex;justify-content:space-between;">
+            <span>Almacenamiento</span>
+            <span id="storagePercent">—</span>
+          </div>
+          <div class="storage-bar">
+            <div class="storage-fill" id="storageFill" style="width:0%"></div>
+          </div>
+          <div id="storageDetails" style="font-size:9.5px;color:var(--text-soft);">Calculando...</div>
+        </div>
+
+        <button class="btn btn-outline" onclick="recargarTodo()" title="Recargar">
+          <svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9M3 3v6h6"/></svg>
+          Recargar
+        </button>
+
+        <button class="btn btn-outline" onclick="exportarTodo()" title="Exportar todo">
+          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Exportar
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="main">
+
+    <!-- BREADCRUMB -->
+    <nav class="breadcrumb" id="breadcrumb"></nav>
+
+    <!-- VIEW 1: DATABASES -->
+    <section id="viewDBs">
+      <div class="view-header">
+        <div class="view-title-wrap">
+          <h1 class="view-title">Bases de Datos</h1>
+          <p class="view-subtitle" id="dbSubtitle">Cargando...</p>
+        </div>
+      </div>
+
+      <div id="dbGrid" class="db-grid"></div>
+    </section>
+
+    <!-- VIEW 2: STORES -->
+    <section id="viewStores" hidden>
+      <div class="view-header">
+        <div class="view-title-wrap">
+          <h1 class="view-title" id="storeViewTitle">Almacenes</h1>
+          <p class="view-subtitle" id="storeViewSubtitle">—</p>
+        </div>
+        <div class="view-actions">
+          <button class="btn btn-rose" onclick="eliminarDBActual()">
+            <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+            Eliminar base de datos
+          </button>
+        </div>
+      </div>
+
+      <div id="storeList" class="store-list"></div>
+    </section>
+
+    <!-- VIEW 3: ENTRIES -->
+    <section id="viewEntries" hidden>
+      <div class="view-header">
+        <div class="view-title-wrap">
+          <h1 class="view-title" id="entriesViewTitle">Registros</h1>
+          <p class="view-subtitle" id="entriesViewSubtitle">—</p>
+        </div>
+        <div class="view-actions">
+          <button class="btn btn-outline" onclick="exportarStoreActual()">
+            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Exportar
+          </button>
+          <button class="btn btn-rose" onclick="vaciarStoreActual()">
+            <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+            Vaciar almacén
+          </button>
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <div class="search-wrap">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" class="search-input" id="searchEntries" placeholder="Buscar por clave o valor..." oninput="filtrarEntries()">
+        </div>
+        <span class="toolbar-count" id="entriesCount">0 registros</span>
+      </div>
+
+      <div id="entriesList" class="entries-list"></div>
+    </section>
+
+  </main>
+
+  <!-- MODAL: VER / EDITAR -->
+  <div id="modalEntry" class="modal-overlay" onclick="cerrarModalFondo(event,'modalEntry')">
+    <div class="modal">
+      <div class="modal-head">
+        <div class="modal-head-info">
+          <div class="modal-title" id="entryModalTitle">Registro</div>
+          <div class="modal-key" id="entryModalKey">—</div>
+        </div>
+        <button class="modal-close" onclick="cerrarModal('modalEntry')">
+          <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+
+      <div class="modal-body" id="entryModalBody"></div>
+
+      <div class="modal-actions" id="entryModalActions"></div>
+    </div>
+  </div>
+
+  <!-- MODAL: CONFIRMAR -->
+  <div id="modalConfirm" class="modal-overlay" onclick="cerrarModalFondo(event,'modalConfirm')">
+    <div class="modal" style="max-width:480px;">
+      <div class="modal-head">
+        <div class="modal-head-info">
+          <div class="modal-title" id="confirmTitle">Confirmar</div>
+        </div>
+        <button class="modal-close" onclick="cerrarModal('modalConfirm')">
+          <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="warning-box">
+          <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <div id="confirmMessage">—</div>
+        </div>
+      </div>
+      <div class="modal-actions" style="justify-content:flex-end;">
+        <button class="btn btn-outline" onclick="cerrarModal('modalConfirm')">Cancelar</button>
+        <button class="btn btn-rose" id="confirmOkBtn">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast">
+    <svg viewBox="0 0 24 24" id="toastIcon"><polyline points="20 6 9 17 4 12"/></svg>
+    <span id="toastText">Notificación</span>
+  </div>
+
+  <script>
+    /* ============================================================
+       ESTADO
+    ============================================================ */
+    let databases = [];
+    let currentDB = null;
+    let currentStore = null;
+    let currentEntries = [];
+    let filteredEntries = [];
+    let currentModalEntry = null;
+    let currentModalMode = 'view';
+
+    // Nombres amigables para las bases de datos conocidas de FABREC
+    const APP_LABELS = {
+      'FABREC_Contabilidad_DB': 'Contabilidad',
+      'FABREC_KING_DB': 'King Pacaya',
+      'Fabrec_Produccion_DB': 'Producción'
+    };
+
+    /* ============================================================
+       UTILIDADES
+    ============================================================ */
+    function escaparHTML(s) {
+      return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[c]));
+    }
+
+    function formatearBytes(b) {
+      if (b >= 1024 * 1024 * 1024) return (b / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
+      if (b >= 1024 * 1024) return (b / (1024 * 1024)).toFixed(2) + ' MB';
+      if (b >= 1024) return (b / 1024).toFixed(1) + ' KB';
+      return b + ' B';
+    }
+
+    function tamanoAprox(valor) {
+      try { return new Blob([JSON.stringify(valor)]).size; } catch (e) { return 0; }
+    }
+
+    function tipoValor(v) {
+      if (v === null) return 'null';
+      if (Array.isArray(v)) return 'array';
+      if (typeof v === 'object') return 'object';
+      if (typeof v === 'string') return 'string';
+      if (typeof v === 'number') return 'number';
+      if (typeof v === 'boolean') return 'boolean';
+      return 'unknown';
+    }
+
+    function badgeDeTipo(tipo) {
+      const config = {
+        object: { cls: 'badge-obj', label: 'Objeto', icon: '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M3 9h18"/>' },
+        array: { cls: 'badge-arr', label: 'Lista', icon: '<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>' },
+        string: { cls: 'badge-str', label: 'Texto', icon: '<path d="M4 7V5h16v2M9 5v14M15 5v14M9 19h6"/>' },
+        number: { cls: 'badge-num', label: 'Número', icon: '<path d="M4 9h16M4 15h16M10 3L8 21M16 3l-2 18"/>' },
+        boolean: { cls: 'badge-bool', label: 'Bool', icon: '<circle cx="12" cy="12" r="10"/>' },
+        null: { cls: 'badge-null', label: 'Nulo', icon: '<circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>' }
+      };
+      const c = config[tipo] || config.null;
+      return `<span class="badge ${c.cls}"><svg viewBox="0 0 24 24">${c.icon}</svg>${c.label}</span>`;
+    }
+
+    function previewValor(v) {
+      const tipo = tipoValor(v);
+      if (tipo === 'string') return v.length > 80 ? v.substring(0, 80) + '…' : v;
+      if (tipo === 'number' || tipo === 'boolean') return String(v);
+      if (tipo === 'null') return 'null';
+      if (tipo === 'array') return `[${v.length} elemento${v.length === 1 ? '' : 's'}]`;
+      if (tipo === 'object') {
+        const keys = Object.keys(v);
+        return `{ ${keys.length} propiedad${keys.length === 1 ? '' : 'es'} }`;
+      }
+      return '';
+    }
+
+    function resaltarJSON(json) {
+      if (typeof json !== 'string') json = JSON.stringify(json, null, 2);
+      return json
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, (match) => {
+          let cls = 'json-number';
+          if (/^"/.test(match)) {
+            cls = /:$/.test(match) ? 'json-key' : 'json-string';
+          } else if (/true|false/.test(match)) {
+            cls = 'json-boolean';
+          } else if (/null/.test(match)) {
+            cls = 'json-null';
+          }
+          return `<span class="${cls}">${match}</span>`;
+        });
+    }
+
+    /* ============================================================
+       TOAST / MODALES
+    ============================================================ */
+    let toastTimer = null;
+    function toast(msg, tipo) {
+      const el = document.getElementById('toast');
+      const txt = document.getElementById('toastText');
+      const icon = document.getElementById('toastIcon');
+      txt.innerText = msg;
+      el.className = 'toast show';
+      if (tipo === 'success') el.classList.add('success');
+      else if (tipo === 'error') el.classList.add('error');
+      icon.innerHTML = tipo === 'error'
+        ? '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>'
+        : '<polyline points="20 6 9 17 4 12"/>';
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
+    }
+
+    function abrirModal(id) { document.getElementById(id).classList.add('open'); document.body.style.overflow = 'hidden'; }
+    function cerrarModal(id) { document.getElementById(id).classList.remove('open'); document.body.style.overflow = ''; }
+    function cerrarModalFondo(e, id) { if (e.target.id === id) cerrarModal(id); }
+
+    function confirmar(mensaje, onOk, titulo) {
+      document.getElementById('confirmTitle').innerText = titulo || 'Confirmar';
+      document.getElementById('confirmMessage').innerHTML = mensaje;
+      const btn = document.getElementById('confirmOkBtn');
+      // Remove old listener
+      const newBtn = btn.cloneNode(true);
+      btn.parentNode.replaceChild(newBtn, btn);
+      newBtn.addEventListener('click', () => {
+        cerrarModal('modalConfirm');
+        onOk();
+      });
+      abrirModal('modalConfirm');
+    }
+
+    /* ============================================================
+       INDEXEDDB HELPERS
+    ============================================================ */
+    function openDB(name) {
+      return new Promise((resolve, reject) => {
+        const req = indexedDB.open(name);
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    function deleteDB(name) {
+      return new Promise((resolve, reject) => {
+        const req = indexedDB.deleteDatabase(name);
+        req.onsuccess = () => resolve();
+        req.onerror = () => reject(req.error);
+        req.onblocked = () => reject(new Error('La base de datos está en uso por otra pestaña. Ciérrala e intenta de nuevo.'));
+      });
+    }
+
+    async function listDatabases() {
+      if (indexedDB.databases) {
+        try {
+          const list = await indexedDB.databases();
+          return list.map(d => d.name).filter(Boolean);
+        } catch (e) {}
+      }
+      // Fallback: intentar abrir bases conocidas
+      const conocidas = ['FABREC_Contabilidad_DB', 'FABREC_KING_DB', 'Fabrec_Produccion_DB'];
+      const existentes = [];
+      for (const name of conocidas) {
+        try {
+          const db = await openDB(name);
+          existentes.push(name);
+          db.close();
+        } catch (e) {}
+      }
+      return existentes;
+    }
+
+    async function getStores(dbName) {
+      const db = await openDB(dbName);
+      const stores = Array.from(db.objectStoreNames);
+      db.close();
+      return stores;
+    }
+
+    async function getAllEntries(dbName, storeName) {
+      const db = await openDB(dbName);
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(storeName, 'readonly');
+        const store = tx.objectStore(storeName);
+        const keysReq = store.getAllKeys();
+        const valsReq = store.getAll();
+        tx.oncomplete = () => {
+          const keys = keysReq.result;
+          const vals = valsReq.result;
+          db.close();
+          const entries = keys.map((k, i) => ({ key: k, value: vals[i] }));
+          entries.sort((a, b) => String(a.key).localeCompare(String(b.key)));
+          resolve(entries);
+        };
+        tx.onerror = () => { db.close(); reject(tx.error); };
+      });
+    }
+
+    async function putEntry(dbName, storeName, key, value) {
+      const db = await openDB(dbName);
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(storeName, 'readwrite');
+        const store = tx.objectStore(storeName);
+        const req = store.put(value, key);
+        tx.oncomplete = () => { db.close(); resolve(); };
+        tx.onerror = () => { db.close(); reject(tx.error); };
+      });
+    }
+
+    async function deleteEntry(dbName, storeName, key) {
+      const db = await openDB(dbName);
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(storeName, 'readwrite');
+        const store = tx.objectStore(storeName);
+        store.delete(key);
+        tx.oncomplete = () => { db.close(); resolve(); };
+        tx.onerror = () => { db.close(); reject(tx.error); };
+      });
+    }
+
+    async function clearStore(dbName, storeName) {
+      const db = await openDB(dbName);
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(storeName, 'readwrite');
+        const store = tx.objectStore(storeName);
+        store.clear();
+        tx.oncomplete = () => { db.close(); resolve(); };
+        tx.onerror = () => { db.close(); reject(tx.error); };
+      });
+    }
+
+    /* ============================================================
+       NAVEGACIÓN
+    ============================================================ */
+    function irADBs() {
+      currentDB = null;
+      currentStore = null;
+      currentEntries = [];
+      filteredEntries = [];
+      document.getElementById('viewDBs').hidden = false;
+      document.getElementById('viewStores').hidden = true;
+      document.getElementById('viewEntries').hidden = true;
+      renderBreadcrumb();
+      renderDBs();
+    }
+
+    function irAStores(dbName) {
+      currentDB = dbName;
+      currentStore = null;
+      currentEntries = [];
+      document.getElementById('viewDBs').hidden = true;
+      document.getElementById('viewStores').hidden = false;
+      document.getElementById('viewEntries').hidden = true;
+      renderBreadcrumb();
+      renderStores();
+    }
+
+    async function irAEntries(dbName, storeName) {
+      currentDB = dbName;
+      currentStore = storeName;
+      document.getElementById('viewDBs').hidden = true;
+      document.getElementById('viewStores').hidden = true;
+      document.getElementById('viewEntries').hidden = false;
+      renderBreadcrumb();
+      document.getElementById('entriesViewTitle').innerText = storeName;
+      document.getElementById('entriesViewSubtitle').innerText = 'Cargando registros...';
+      document.getElementById('entriesList').innerHTML = '';
+      try {
+        currentEntries = await getAllEntries(dbName, storeName);
+        filteredEntries = [...currentEntries];
+        document.getElementById('entriesViewSubtitle').innerText = `${currentEntries.length} registro${currentEntries.length === 1 ? '' : 's'} en "${dbName}"`;
+        renderEntries();
+      } catch (e) {
+        document.getElementById('entriesList').innerHTML = `<div class="empty-state"><div class="empty-title">Error</div><div class="empty-sub">${escaparHTML(e.message)}</div></div>`;
+      }
+    }
+
+    function renderBreadcrumb() {
+      const el = document.getElementById('breadcrumb');
+      const partes = [];
+      partes.push({
+        label: 'Bases de Datos',
+        active: !currentDB,
+        onclick: 'irADBs()'
+      });
+      if (currentDB) {
+        partes.push({
+          label: currentDB,
+          active: !currentStore,
+          onclick: `irAStores('${escaparHTML(currentDB)}')`
+        });
+      }
+      if (currentStore) {
+        partes.push({
+          label: currentStore,
+          active: true,
+          onclick: null
+        });
+      }
+      el.innerHTML = partes.map((p, i) => `
+        ${i > 0 ? '<svg class="breadcrumb-sep" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>' : ''}
+        <span class="breadcrumb-item ${p.active ? 'active' : ''}" ${p.onclick ? `onclick="${p.onclick}"` : ''}>${escaparHTML(p.label)}</span>
+      `).join('');
+    }
+
+    /* ============================================================
+       RENDER: DBs
+    ============================================================ */
+    async function renderDBs() {
+      const grid = document.getElementById('dbGrid');
+      const subtitle = document.getElementById('dbSubtitle');
+
+      if (databases.length === 0) {
+        grid.innerHTML = `
+          <div class="empty-state" style="grid-column:1/-1;">
+            <div class="empty-icon"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg></div>
+            <div class="empty-title">No se encontraron bases de datos</div>
+            <div class="empty-sub">Abre alguna de tus apps (Ventas, Contabilidad, King o Producción) y sube datos para que aparezcan aquí.</div>
+          </div>`;
+        subtitle.innerText = 'Sin bases de datos';
+        return;
+      }
+
+      subtitle.innerText = `${databases.length} base${databases.length === 1 ? '' : 's'} de datos detectada${databases.length === 1 ? '' : 's'}`;
+
+      // Para cada DB obtener info resumida
+      const detalles = await Promise.all(databases.map(async (name) => {
+        try {
+          const stores = await getStores(name);
+          let totalEntries = 0;
+          let totalSize = 0;
+          for (const s of stores) {
+            try {
+              const entries = await getAllEntries(name, s);
+              totalEntries += entries.length;
+              entries.forEach(e => totalSize += tamanoAprox(e.value));
+            } catch (e) {}
+          }
+          return { name, stores, totalEntries, totalSize };
+        } catch (e) {
+          return { name, stores: [], totalEntries: 0, totalSize: 0, error: e.message };
+        }
+      }));
+
+      grid.innerHTML = detalles.map(d => {
+        const appLabel = APP_LABELS[d.name];
+        const isFabrec = !!appLabel;
+        return `
+          <div class="db-card ${isFabrec ? 'fabrec' : ''}" onclick="irAStores('${escaparHTML(d.name)}')">
+            <div class="db-card-top">
+              <div class="db-icon">
+                <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/><path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3"/></svg>
+              </div>
+              <div class="db-info">
+                <div class="db-name">${escaparHTML(d.name)}</div>
+                ${appLabel ? `<div class="db-app-label"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>${escaparHTML(appLabel)}</div>` : ''}
+              </div>
+            </div>
+            <div class="db-stats">
+              <div class="db-stat">
+                <div class="db-stat-label">Almacenes</div>
+                <div class="db-stat-value">${d.stores.length}</div>
+              </div>
+              <div class="db-stat">
+                <div class="db-stat-label">Registros</div>
+                <div class="db-stat-value">${d.totalEntries.toLocaleString()}</div>
+              </div>
+              <div class="db-stat">
+                <div class="db-stat-label">Tamaño aprox.</div>
+                <div class="db-stat-value">${formatearBytes(d.totalSize)}</div>
+              </div>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    /* ============================================================
+       RENDER: Stores
+    ============================================================ */
+    async function renderStores() {
+      const cont = document.getElementById('storeList');
+      document.getElementById('storeViewTitle').innerText = currentDB;
+      document.getElementById('storeViewSubtitle').innerText = 'Cargando almacenes...';
+
+      try {
+        const stores = await getStores(currentDB);
+        document.getElementById('storeViewSubtitle').innerText = `${stores.length} almacén${stores.length === 1 ? '' : 'es'} de objetos`;
+
+        if (stores.length === 0) {
+          cont.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg></div>
+              <div class="empty-title">Sin almacenes</div>
+              <div class="empty-sub">Esta base de datos no tiene almacenes de objetos.</div>
+            </div>`;
+          return;
+        }
+
+        // Obtener conteo por store
+        const conteos = await Promise.all(stores.map(async s => {
+          try {
+            const entries = await getAllEntries(currentDB, s);
+            let size = 0;
+            entries.forEach(e => size += tamanoAprox(e.value));
+            return { name: s, count: entries.length, size };
+          } catch (e) { return { name: s, count: 0, size: 0 }; }
+        }));
+
+        cont.innerHTML = conteos.map(c => `
+          <div class="store-card" onclick="irAEntries('${escaparHTML(currentDB)}', '${escaparHTML(c.name)}')">
+            <div class="store-icon">
+              <svg viewBox="0 0 24 24"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+            </div>
+            <div class="store-info">
+              <div class="store-name">${escaparHTML(c.name)}</div>
+              <div class="store-meta">${c.count} registro${c.count === 1 ? '' : 's'} • ${formatearBytes(c.size)}</div>
+            </div>
+            <svg class="store-arrow" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+        `).join('');
+      } catch (e) {
+        cont.innerHTML = `<div class="empty-state"><div class="empty-title">Error</div><div class="empty-sub">${escaparHTML(e.message)}</div></div>`;
+      }
+    }
+
+    /* ============================================================
+       RENDER: Entries
+    ============================================================ */
+    function renderEntries() {
+      const cont = document.getElementById('entriesList');
+      const count = document.getElementById('entriesCount');
+      count.innerText = `${filteredEntries.length} de ${currentEntries.length} registro${currentEntries.length === 1 ? '' : 's'}`;
+
+      if (currentEntries.length === 0) {
+        cont.innerHTML = `
+          <div class="empty-state" style="border-radius:14px;">
+            <div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg></div>
+            <div class="empty-title">Almacén vacío</div>
+            <div class="empty-sub">No hay registros guardados en este almacén.</div>
+          </div>`;
+        return;
+      }
+
+      if (filteredEntries.length === 0) {
+        cont.innerHTML = `
+          <div class="empty-state" style="border-radius:14px;">
+            <div class="empty-title">Sin coincidencias</div>
+            <div class="empty-sub">Prueba con otra búsqueda.</div>
+          </div>`;
+        return;
+      }
+
+      cont.innerHTML = filteredEntries.map((e, idx) => {
+        const tipo = tipoValor(e.value);
+        const preview = previewValor(e.value);
+        const size = formatearBytes(tamanoAprox(e.value));
+        return `
+          <div class="entry-row" onclick="abrirEntry(${idx})">
+            <div class="entry-icon">
+              <svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/><path d="M4 9h16M4 15h16M10 4v16"/></svg>
+            </div>
+            <div class="entry-info">
+              <div class="entry-key">${escaparHTML(String(e.key))}</div>
+              <div class="entry-preview">${escaparHTML(preview)}</div>
+            </div>
+            <div class="entry-badges">
+              ${badgeDeTipo(tipo)}
+              <span class="badge badge-size">${size}</span>
+            </div>
+            <svg class="entry-arrow" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>`;
+      }).join('');
+    }
+
+    function filtrarEntries() {
+      const q = document.getElementById('searchEntries').value.toLowerCase().trim();
+      if (!q) {
+        filteredEntries = [...currentEntries];
+      } else {
+        filteredEntries = currentEntries.filter(e => {
+          const keyStr = String(e.key).toLowerCase();
+          let valStr = '';
+          try { valStr = JSON.stringify(e.value).toLowerCase(); } catch (er) {}
+          return keyStr.includes(q) || valStr.includes(q);
+        });
+      }
+      renderEntries();
+    }
+
+    /* ============================================================
+       MODAL DE ENTRADA (VER / EDITAR)
+    ============================================================ */
+    function abrirEntry(idx) {
+      const e = filteredEntries[idx];
+      if (!e) return;
+      currentModalEntry = e;
+      currentModalMode = 'view';
+      renderEntryModal();
+      abrirModal('modalEntry');
+    }
+
+    function renderEntryModal() {
+      const e = currentModalEntry;
+      if (!e) return;
+      const tipo = tipoValor(e.value);
+      const size = formatearBytes(tamanoAprox(e.value));
+
+      document.getElementById('entryModalTitle').innerText = 'Ver registro';
+      document.getElementById('entryModalKey').innerText = String(e.key) + ' • ' + size;
+
+      const body = document.getElementById('entryModalBody');
+
+      if (currentModalMode === 'view') {
+        if (tipo === 'string') {
+          body.innerHTML = `
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+              ${badgeDeTipo('string')}
+              <span class="badge badge-size">${size}</span>
+            </div>
+            <div class="str-value-box">${escaparHTML(e.value)}</div>`;
+        } else {
+          let jsonStr;
+          try { jsonStr = JSON.stringify(e.value, null, 2); } catch (er) { jsonStr = String(e.value); }
+          body.innerHTML = `
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+              ${badgeDeTipo(tipo)}
+              <span class="badge badge-size">${size}</span>
+            </div>
+            <div class="code-view">${resaltarJSON(jsonStr)}</div>`;
+        }
+
+        document.getElementById('entryModalActions').innerHTML = `
+          <button class="btn btn-rose" onclick="eliminarEntryActual()">
+            <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/></svg>
+            Eliminar
+          </button>
+          <div class="modal-actions-right">
+            <button class="btn btn-outline" onclick="cerrarModal('modalEntry')">Cerrar</button>
+            <button class="btn btn-primary" onclick="modoEditar()">
+              <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              Editar
+            </button>
+          </div>`;
+      } else {
+        // Modo edición
+        let jsonStr;
+        if (tipo === 'string') {
+          jsonStr = e.value;
+        } else {
+          try { jsonStr = JSON.stringify(e.value, null, 2); } catch (er) { jsonStr = String(e.value); }
+        }
+
+        body.innerHTML = `
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+            ${badgeDeTipo(tipo)}
+            <span class="badge badge-size" id="editSizeBadge">${size}</span>
+          </div>
+          <textarea class="json-edit" id="editValueArea">${escaparHTML(jsonStr)}</textarea>
+          <div style="font-size:11px;font-weight:600;color:var(--text-muted);">
+            ${tipo === 'string' ? 'Edita el texto directamente.' : 'Edita el JSON con cuidado. Se validará antes de guardar.'}
+          </div>`;
+
+        document.getElementById('entryModalActions').innerHTML = `
+          <button class="btn btn-outline" onclick="modoVer()">Cancelar</button>
+          <div class="modal-actions-right">
+            <button class="btn btn-primary" onclick="guardarEntryActual()">
+              <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+              Guardar cambios
+            </button>
+          </div>`;
+      }
+    }
+
+    function modoEditar() {
+      currentModalMode = 'edit';
+      renderEntryModal();
+    }
+    function modoVer() {
+      currentModalMode = 'view';
+      renderEntryModal();
+    }
+
+    async function guardarEntryActual() {
+      const e = currentModalEntry;
+      if (!e) return;
+      const tipo = tipoValor(e.value);
+      const txt = document.getElementById('editValueArea').value;
+
+      let nuevoValor;
+      if (tipo === 'string') {
+        nuevoValor = txt;
+      } else {
+        try {
+          nuevoValor = JSON.parse(txt);
+        } catch (err) {
+          toast('JSON inválido: ' + err.message, 'error');
+          return;
+        }
+      }
+
+      try {
+        await putEntry(currentDB, currentStore, e.key, nuevoValor);
+        // Actualizar local
+        const idx = currentEntries.findIndex(x => x.key === e.key);
+        if (idx !== -1) currentEntries[idx] = { key: e.key, value: nuevoValor };
+        currentModalEntry = { key: e.key, value: nuevoValor };
+        // Reconstruir filteredEntries
+        filtrarEntries();
+        toast('Registro actualizado', 'success');
+        modoVer();
+        renderStores();
+      } catch (err) {
+        toast('Error al guardar: ' + err.message, 'error');
+      }
+    }
+
+    function eliminarEntryActual() {
+      const e = currentModalEntry;
+      if (!e) return;
+      confirmar(
+        `¿Eliminar el registro <strong>"${escaparHTML(String(e.key))}"</strong>? Esta acción no se puede deshacer.`,
+        async () => {
+          try {
+            await deleteEntry(currentDB, currentStore, e.key);
+            currentEntries = currentEntries.filter(x => x.key !== e.key);
+            filtrarEntries();
+            cerrarModal('modalEntry');
+            toast('Registro eliminado', 'success');
+            renderStores();
+          } catch (err) {
+            toast('Error: ' + err.message, 'error');
+          }
+        },
+        'Eliminar registro'
+      );
+    }
+
+    /* ============================================================
+       ACCIONES DE STORE / DB
+    ============================================================ */
+    function vaciarStoreActual() {
+      if (!currentDB || !currentStore) return;
+      confirmar(
+        `¿Vaciar el almacén <strong>"${escaparHTML(currentStore)}"</strong>? Se eliminarán <strong>todos los ${currentEntries.length} registros</strong>. Esta acción no se puede deshacer.`,
+        async () => {
+          try {
+            await clearStore(currentDB, currentStore);
+            currentEntries = [];
+            filteredEntries = [];
+            renderEntries();
+            toast('Almacén vaciado', 'success');
+            renderStores();
+          } catch (err) {
+            toast('Error: ' + err.message, 'error');
+          }
+        },
+        'Vaciar almacén'
+      );
+    }
+
+    function eliminarDBActual() {
+      if (!currentDB) return;
+      confirmar(
+        `¿Eliminar <strong>completamente</strong> la base de datos <strong>"${escaparHTML(currentDB)}"</strong>? Se perderán todos sus almacenes y registros. Esta acción no se puede deshacer.`,
+        async () => {
+          try {
+            await deleteDB(currentDB);
+            toast('Base de datos eliminada', 'success');
+            databases = await listDatabases();
+            irADBs();
+          } catch (err) {
+            toast('Error: ' + err.message, 'error');
+          }
+        },
+        'Eliminar base de datos'
+      );
+    }
+
+    /* ============================================================
+       EXPORTAR
+    ============================================================ */
+    function descargarBlob(contenido, nombreArchivo, mime) {
+      const blob = new Blob([contenido], { type: mime || 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = nombreArchivo;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function exportarStoreActual() {
+      if (!currentEntries.length) { toast('No hay datos para exportar', 'error'); return; }
+      const obj = {};
+      currentEntries.forEach(e => { obj[e.key] = e.value; });
+      const fecha = new Date().toISOString().split('T')[0];
+      descargarBlob(JSON.stringify(obj, null, 2), `${currentDB}_${currentStore}_${fecha}.json`);
+      toast('Exportado', 'success');
+    }
+
+    async function exportarTodo() {
+      if (!databases.length) { toast('No hay bases de datos', 'error'); return; }
+      toast('Recopilando datos...', null);
+      const dump = { fecha: new Date().toISOString(), databases: {} };
+      for (const name of databases) {
+        try {
+          const stores = await getStores(name);
+          dump.databases[name] = {};
+          for (const s of stores) {
+            const entries = await getAllEntries(name, s);
+            dump.databases[name][s] = {};
+            entries.forEach(e => { dump.databases[name][s][e.key] = e.value; });
+          }
+        } catch (e) { dump.databases[name] = { error: e.message }; }
+      }
+      const fecha = new Date().toISOString().split('T')[0];
+      descargarBlob(JSON.stringify(dump, null, 2), `fabrec_dump_${fecha}.json`);
+      toast('Backup completo exportado', 'success');
+    }
+
+    /* ============================================================
+       RECARGA
+    ============================================================ */
+    async function recargarTodo() {
+      toast('Recargando...', null);
+      databases = await listDatabases();
+      if (currentDB && currentStore) {
+        await irAEntries(currentDB, currentStore);
+      } else if (currentDB) {
+        renderStores();
+      } else {
+        renderDBs();
+      }
+      renderBreadcrumb();
+      actualizarStorage();
+    }
+
+    /* ============================================================
+       STORAGE ESTIMATE
+    ============================================================ */
+    async function actualizarStorage() {
+      try {
+        if (!navigator.storage || !navigator.storage.estimate) return;
+        const est = await navigator.storage.estimate();
+        const used = est.usage || 0;
+        const quota = est.quota || 1;
+        const pct = Math.min(100, (used / quota) * 100);
+        document.getElementById('storagePercent').innerText = pct.toFixed(1) + '%';
+        document.getElementById('storageFill').style.width = Math.max(1, pct) + '%';
+        document.getElementById('storageDetails').innerText = `${formatearBytes(used)} / ${formatearBytes(quota)}`;
+      } catch (e) {}
+    }
+
+    /* ============================================================
+       INIT
+    ============================================================ */
+    window.addEventListener('DOMContentLoaded', async () => {
+      databases = await listDatabases();
+      irADBs();
+      actualizarStorage();
+      setInterval(actualizarStorage, 30000);
+    });
+
+    // Exponer para handlers inline
+    window.irADBs = irADBs;
+    window.irAStores = irAStores;
+    window.irAEntries = irAEntries;
+    window.abrirEntry = abrirEntry;
+    window.modoEditar = modoEditar;
+    window.modoVer = modoVer;
+    window.guardarEntryActual = guardarEntryActual;
+    window.eliminarEntryActual = eliminarEntryActual;
+    window.vaciarStoreActual = vaciarStoreActual;
+    window.eliminarDBActual = eliminarDBActual;
+    window.exportarStoreActual = exportarStoreActual;
+    window.exportarTodo = exportarTodo;
+    window.recargarTodo = recargarTodo;
+    window.filtrarEntries = filtrarEntries;
+    window.cerrarModal = cerrarModal;
+    window.cerrarModalFondo = cerrarModalFondo;
+  </script>
+</body>
+</html>

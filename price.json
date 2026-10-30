@@ -1,0 +1,140 @@
+{
+  "empresa": "FABREC",
+  "tipo_documento": "tarifario_oficial_0001",
+  "autorizado_por": "Gladys Garro",
+  "cargo": "Gerencia General",
+  "fecha_emision": "2026-10-28T15:46:12.330Z",
+  "vigencia": {
+    "desde": "2026-10-01",
+    "hasta": "2026-10-31"
+  },
+  "total_productos": 16,
+  "precios": [
+    {
+      "producto": "220 ml",
+      "precio_menor": 19.5,
+      "precio_mayor": 19,
+      "precio_cliente_final": 21,
+      "unidades_paquete": 100
+    },
+    {
+      "producto": "250 ml",
+      "precio_menor": 19.5,
+      "precio_mayor": 19,
+      "precio_cliente_final": 21,
+      "unidades_paquete": 100
+    },
+    {
+      "producto": "280 ml",
+      "precio_menor": 19.5,
+      "precio_mayor": 19,
+      "precio_cliente_final": 21,
+      "unidades_paquete": 100
+    },
+    {
+      "producto": "300 ml",
+      "precio_menor": 19.5,
+      "precio_mayor": 19,
+      "precio_cliente_final": 21,
+      "unidades_paquete": 100
+    },
+    {
+      "producto": "340 ml",
+      "precio_menor": 19.5,
+      "precio_mayor": 19,
+      "precio_cliente_final": 21,
+      "unidades_paquete": 100
+    },
+    {
+      "producto": "350 ml",
+      "precio_menor": 19.5,
+      "precio_mayor": 19,
+      "precio_cliente_final": 21,
+      "unidades_paquete": 100
+    },
+    {
+      "producto": "400 ml",
+      "precio_menor": 20.5,
+      "precio_mayor": 20,
+      "precio_cliente_final": 22,
+      "unidades_paquete": 100
+    },
+    {
+      "producto": "450 ml",
+      "precio_menor": 20.5,
+      "precio_mayor": 20,
+      "precio_cliente_final": 22,
+      "unidades_paquete": 100
+    },
+    {
+      "producto": "500 ml Néctar",
+      "precio_menor": 21.5,
+      "precio_mayor": 21,
+      "precio_cliente_final": 22,
+      "unidades_paquete": 100
+    },
+    {
+      "producto": "500 ml Gorda",
+      "precio_menor": 22.5,
+      "precio_mayor": 22,
+      "precio_cliente_final": 24,
+      "unidades_paquete": 100
+    },
+    {
+      "producto": "500 ml GH",
+      "precio_menor": 22.5,
+      "precio_mayor": 22,
+      "precio_cliente_final": 24,
+      "unidades_paquete": 100
+    },
+    {
+      "producto": "625 ml",
+      "precio_menor": 23,
+      "precio_mayor": 22,
+      "precio_cliente_final": 24,
+      "unidades_paquete": 100
+    },
+    {
+      "producto": "900 ml",
+      "precio_menor": 17,
+      "precio_mayor": 16.5,
+      "precio_cliente_final": 18.5,
+      "unidades_paquete": 50
+    },
+    {
+      "producto": "1000 ml",
+      "precio_menor": 17,
+      "precio_mayor": 16.5,
+      "precio_cliente_final": 18.5,
+      "unidades_paquete": 50
+    },
+    {
+      "producto": "1500 ml",
+      "precio_menor": 26,
+      "precio_mayor": 25,
+      "precio_cliente_final": 27,
+      "unidades_paquete": 50
+    },
+    {
+      "producto": "2500 ml",
+      "precio_menor": 29.5,
+      "precio_mayor": 29,
+      "precio_cliente_final": 32,
+      "unidades_paquete": 50
+    },
+    {
+      "producto": "3000 ml",
+      "precio_menor": 36,
+      "precio_mayor": 35,
+      "precio_cliente_final": 37,
+      "unidades_paquete": 50
+    },
+    {
+      "producto": "3000 ml (verde)",
+      "precio_menor": 29,
+      "precio_mayor": 28,
+      "precio_cliente_final": 30,
+      "unidades_paquete": 50
+    }
+  ]
+}
