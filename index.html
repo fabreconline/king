@@ -684,19 +684,28 @@ html.dark .qw-mode-btn.auto-gray{background:rgba(245,243,230,0.1);color:var(--te
 
     <div class="redes-channel-card">
       <div class="redes-channel-icon">
-        <svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
       </div>
       <div class="redes-channel-info">
-        <div class="redes-channel-title">Canal de WhatsApp</div>
-        <div class="redes-channel-desc">Canal de difusión FABREC.</div>
+        <div class="redes-channel-title">Mensaje de WhatsApp</div>
+        <div class="redes-channel-desc">Hola, ¿qué tal? 👋 Comuníquese con el número oficial de FABREC: +51 934 568 359</div>
       </div>
       <div class="redes-channel-actions">
-        <a href="https://whatsapp.com/channel/0029VbDXPdJ6xCSTZ8s0iO1e" target="_blank" rel="noopener" class="btn btn-accent">
-          <svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
-          Ir al canal
-        </a>
+        <button class="btn btn-accent" onclick="copyWhatsAppMessage()">
+          <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          Copiar mensaje
+        </button>
       </div>
     </div>
+
+    <div class="section-title-row">
+      <div class="section-title">Redes oficiales</div>
+      <button class="btn btn-accent btn-sm" onclick="copyAllNetworks()">
+        <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        Copiar todas las redes
+      </button>
+    </div>
+    <div class="vendors-grid" id="networksGrid"></div>
 
     <div class="section-title-row">
       <div class="section-title">Equipo de ventas</div>
@@ -936,14 +945,21 @@ const ZONE_COLORS = {
 };
 
 const WA_CHANNEL_URL = 'https://whatsapp.com/channel/0029VbDXPdJ6xCSTZ8s0iO1e';
+const WA_MESSAGE = 'Hola, ¿qué tal? 👋 Comuníquese con el número oficial de FABREC: +51 934 568 359';
+const NETWORKS = [
+  {name:'TIKTOK',    label:'@fabrec_',                  url:'https://www.tiktok.com/@fabrec_',     avatar:'T', alt:false},
+  {name:'FACEBOOK',  label:'/fabrecc',                   url:'https://www.facebook.com/fabrecc',    avatar:'F', alt:true},
+  {name:'INSTAGRAM', label:'/_fabrec/',                  url:'https://www.instagram.com/_fabrec/',  avatar:'I', alt:false},
+  {name:'CANAL DE WHATSAPP', label:'Canal de difusión FABREC', url:WA_CHANNEL_URL,                avatar:'W', alt:true, isChannel:true}
+];
 const VENDORS = [
-  {name:'KING',    zone:'Jefe de Ventas', phone:'+51 934 568 359', waPhone:'51922796815', isJefe:true},
+  {name:'KING',    zone:'Jefe de Ventas', phone:'+51 922 796 815', waPhone:'51922796815', isJefe:true},
   {name:'ORLENIS', zone:'Cono Sur',   phone:'+51 949 807 573', waPhone:'51949807573'},
   {name:'JUNIOR',  zone:'La Parada',  phone:'+51 921 763 963', waPhone:'51921763963'},
   {name:'YOLANDA', zone:'Cono Norte', phone:'+51 934 568 306', waPhone:'51934568306'},
   {name:'GERALD',  zone:'Cono Este',  phone:'+51 994 227 063', waPhone:'51994227063'}
 ];
-const JEFE_VENTAS = {name:'King · Jefe de Ventas', phone:'+51 934 568 359', waPhone:'51922796815'};
+const JEFE_VENTAS = {name:'King · Jefe de Ventas', phone:'+51 922 796 815', waPhone:'51922796815'};
 
 const store = localforage.createInstance({name:'fabrec_comercial',storeName:'data'});
 
@@ -1375,27 +1391,25 @@ async function buildAllPricesImageBlob(){
   const mayorLabel = unitKey === 'millar' ? 'MILLAR AL POR MAYOR' : 'AL POR MAYOR';
 
   const dpr = 2;
-  const W = 1000, pad = 36;
-  // Encabezado más compacto
+  const W = 1000;
+  const innerPad = 28; // padding interno para el texto (la tabla llega a los bordes)
+  // Encabezado compacto
   const headerH = 110;
   const colHeaderH = 50;
   const rowH = 48;
   const footerNoticeH = 120;
-  const gapAfterHeader = 14;
-  const gapBeforeTable = 10;
-  const gapBeforeFooter = 18;
-  // Sin subheader, sin barra inferior
-  const H = headerH + gapAfterHeader + gapBeforeTable + colHeaderH + products.length*rowH + gapBeforeFooter + footerNoticeH + pad;
+  // Sin gaps entre header/tabla/footer; sin pad exterior
+  const H = headerH + colHeaderH + products.length*rowH + footerNoticeH + 4;
 
   const canvas = document.createElement('canvas');
   canvas.width = W*dpr; canvas.height = H*dpr;
   const ctx = canvas.getContext('2d');
   ctx.scale(dpr,dpr);
 
-  // Fondo crema
+  // Fondo crema (queda cubierto por las secciones que van edge-to-edge)
   ctx.fillStyle = '#F5F3E6'; ctx.fillRect(0,0,W,H);
 
-  // === HEADER compacto === (degradado verde)
+  // === HEADER compacto === (degradado verde, full width)
   const headerGrad = ctx.createLinearGradient(0, 0, W, headerH);
   headerGrad.addColorStop(0, '#0D3827');
   headerGrad.addColorStop(1, '#0F4230');
@@ -1405,8 +1419,8 @@ async function buildAllPricesImageBlob(){
   ctx.fillStyle = '#CC562E';
   ctx.fillRect(0, headerH-5, W, 5);
 
-  // === LOGO circular (más pequeño) ===
-  const logoX = pad + 24, logoY = headerH/2, logoR = 26;
+  // === LOGO circular ===
+  const logoX = innerPad + 24, logoY = headerH/2, logoR = 26;
   ctx.beginPath();
   ctx.arc(logoX, logoY, logoR, 0, Math.PI*2);
   ctx.fillStyle = '#CC562E';
@@ -1427,33 +1441,32 @@ async function buildAllPricesImageBlob(){
   ctx.fillStyle = 'rgba(245,243,230,0.65)';
   ctx.fillText('GESTIÓN COMERCIAL', logoX + 40, logoY + 14);
 
-  // === TÍTULO === (compacto)
+  // === TÍTULO ===
   ctx.textAlign = 'right';
   ctx.font = '900 26px Montserrat, sans-serif';
   ctx.fillStyle = '#F5F3E6';
-  ctx.fillText('PRECIOS ACTUALIZADOS', W - pad, logoY - 4);
-  // Fecha pequeña
+  ctx.fillText('PRECIOS ACTUALIZADOS', W - innerPad, logoY - 4);
   const dateStr = new Date().toLocaleDateString('es-PE',{day:'2-digit',month:'long',year:'numeric'}).toUpperCase();
   ctx.font = '700 10.5px Montserrat, sans-serif';
   ctx.fillStyle = '#CC562E';
-  ctx.fillText(dateStr, W - pad, logoY + 18);
+  ctx.fillText(dateStr, W - innerPad, logoY + 18);
 
-  // === TABLA HEADER === (directamente, sin subheader)
-  let y = headerH + gapAfterHeader + gapBeforeTable;
+  // === TABLA HEADER === (full width, justo después del header)
+  let y = headerH;
   ctx.fillStyle = '#0D3827';
-  ctx.fillRect(pad, y, W-pad*2, colHeaderH);
-  // Acento naranja lateral
+  ctx.fillRect(0, y, W, colHeaderH);
+  // Acento naranja lateral izquierdo
   ctx.fillStyle = '#CC562E';
-  ctx.fillRect(pad, y, 5, colHeaderH);
+  ctx.fillRect(0, y, 5, colHeaderH);
 
   ctx.fillStyle = '#F5F3E6';
   ctx.font = '900 12px Montserrat, sans-serif';
   ctx.textBaseline = 'middle';
 
-  const colModelo = pad + 24;
-  const colUnidad = pad + 380;
-  const colMenor = pad + 720;
-  const colMayor = W - pad - 24;
+  const colModelo = innerPad;
+  const colUnidad = innerPad + 380;
+  const colMenor = innerPad + 720;
+  const colMayor = W - innerPad;
 
   ctx.textAlign = 'left';
   ctx.fillText('MODELO', colModelo, y + colHeaderH/2);
@@ -1463,7 +1476,7 @@ async function buildAllPricesImageBlob(){
   ctx.fillText(mayorLabel, colMayor, y + colHeaderH/2);
   y += colHeaderH;
 
-  // === FILAS ===
+  // === FILAS === (full width)
   products.forEach(function(p, i){
     const units = p.unidades_paquete || 100;
     const factor = unitFactor(unitKey, units);
@@ -1471,17 +1484,17 @@ async function buildAllPricesImageBlob(){
     // Fondo alterno
     if(i % 2 === 0){
       ctx.fillStyle = 'rgba(13,56,39,0.04)';
-      ctx.fillRect(pad, y, W-pad*2, rowH);
+      ctx.fillRect(0, y, W, rowH);
     } else {
       ctx.fillStyle = '#FFFFFF';
-      ctx.fillRect(pad, y, W-pad*2, rowH);
+      ctx.fillRect(0, y, W, rowH);
     }
     // Línea inferior sutil
     ctx.strokeStyle = 'rgba(13,56,39,0.08)';
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(pad, y + rowH - 0.5);
-    ctx.lineTo(W-pad, y + rowH - 0.5);
+    ctx.moveTo(0, y + rowH - 0.5);
+    ctx.lineTo(W, y + rowH - 0.5);
     ctx.stroke();
 
     // Modelo
@@ -1532,15 +1545,14 @@ async function buildAllPricesImageBlob(){
     y += rowH;
   });
 
-  // === FOOTER: CTA destacado (solo bloque de vendedor, sin texto de WhatsApp) ===
-  y += gapBeforeFooter;
+  // === FOOTER: CTA destacado (full width, justo después de la tabla) ===
   const footerGrad = ctx.createLinearGradient(0, y, W, y+footerNoticeH);
   footerGrad.addColorStop(0, '#0D3827');
   footerGrad.addColorStop(1, '#11402F');
   ctx.fillStyle = footerGrad;
-  ctx.fillRect(pad, y, W-pad*2, footerNoticeH);
+  ctx.fillRect(0, y, W, footerNoticeH);
   ctx.fillStyle = '#CC562E';
-  ctx.fillRect(pad, y, W-pad*2, 5);
+  ctx.fillRect(0, y, W, 5);
 
   ctx.fillStyle = '#F5F3E6';
   ctx.font = '900 22px Montserrat, sans-serif';
@@ -1569,6 +1581,35 @@ async function buildAllPricesImageBlob(){
 
 /* REDES - EQUIPO DE VENTAS Y CUENTAS */
 function renderRedes(){
+  // Grid de redes oficiales (TikTok, Facebook, Instagram, Canal WhatsApp)
+  const networksGrid = document.getElementById('networksGrid');
+  if(networksGrid){
+    networksGrid.innerHTML = NETWORKS.map(function(n, i){
+      const altClass = n.alt ? ' alt' : '';
+      const channelClass = n.isChannel ? ' jefe' : '';
+      return '<div class="vendor-card'+channelClass+'" onclick="copyNetwork('+i+')" title="Toca para copiar el enlace de '+n.name+'">'
+        + '<div class="vendor-card-strip"></div>'
+        + '<div class="vendor-card-body">'
+        + '<div class="vendor-card-head">'
+        + '<div class="vendor-avatar'+altClass+'">'+n.avatar+'</div>'
+        + '<div class="vendor-head-info">'
+        + '<div class="vendor-id-label">Red oficial · FABREC</div>'
+        + '<div class="vendor-name">'+n.name+'</div>'
+        + '<div class="vendor-zone">'+n.label+'</div>'
+        + '</div>'
+        + '</div>'
+        + '<div class="vendor-phone" style="font-size:12px;word-break:break-all;white-space:normal;line-height:1.4;">'+n.url+'</div>'
+        + '<div class="vendor-card-foot" onclick="event.stopPropagation()">'
+        + '<a href="'+n.url+'" target="_blank" rel="noopener" class="btn btn-accent">'
+        + '<svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>'
+        + 'Ir a la red'
+        + '</a>'
+        + '</div>'
+        + '</div>'
+        + '</div>';
+    }).join('');
+  }
+
   const grid = document.getElementById('vendorsGrid');
   if(!grid) return;
   grid.innerHTML = VENDORS.map(function(v, i){
@@ -1678,6 +1719,30 @@ function copyAccount(type){
 function copyChannelLink(){
   copyTextToClipboard(WA_CHANNEL_URL).then(function(ok){
     toast(ok ? 'Enlace del canal copiado' : 'No se pudo copiar', ok ? 'success' : 'error');
+  });
+}
+
+function copyWhatsAppMessage(){
+  copyTextToClipboard(WA_MESSAGE).then(function(ok){
+    toast(ok ? 'Mensaje de WhatsApp copiado' : 'No se pudo copiar', ok ? 'success' : 'error');
+  });
+}
+
+function copyNetwork(idx){
+  const n = NETWORKS[idx]; if(!n) return;
+  const text = '*' + n.name + ' - FABREC*\n' + n.url;
+  copyTextToClipboard(text).then(function(ok){
+    toast(ok ? 'Enlace de '+n.name+' copiado' : 'No se pudo copiar', ok ? 'success' : 'error');
+  });
+}
+
+function copyAllNetworks(){
+  const header = 'Estas son las redes oficiales de FABREC:\n\n';
+  const body = NETWORKS.map(function(n){
+    return '*' + n.name + '*\n' + n.url;
+  }).join('\n\n');
+  copyTextToClipboard(header + body).then(function(ok){
+    toast(ok ? 'Todas las redes copiadas' : 'No se pudo copiar', ok ? 'success' : 'error');
   });
 }
 
@@ -2108,9 +2173,11 @@ async function buildQuoteImageBlob(){
 async function buildQuoteImageBlobFromLines(lines, subtitle, total){
   try{ if(document.fonts && document.fonts.ready) await document.fonts.ready; }catch(e){}
   const dpr = 2;
-  const W = 900, pad = 34;
+  const W = 900;
+  const innerPad = 28; // padding interno para texto (tabla llega a los bordes)
   const headerH = 100, colHeaderH = 42, rowH = 42, totalH = 64;
-  const H = headerH + pad + colHeaderH + lines.length*rowH + totalH + pad;
+  // Sin gaps ni pad exterior: tabla 100% ancho y alto
+  const H = headerH + colHeaderH + lines.length*rowH + totalH + 4;
 
   const canvas = document.createElement('canvas');
   canvas.width = W*dpr; canvas.height = H*dpr;
@@ -2118,37 +2185,40 @@ async function buildQuoteImageBlobFromLines(lines, subtitle, total){
   ctx.scale(dpr,dpr);
   ctx.fillStyle = '#F5F3E6'; ctx.fillRect(0,0,W,H);
 
+  // Header full width
   ctx.fillStyle = '#0D3827'; ctx.fillRect(0,0,W,headerH);
   ctx.fillStyle = '#CC562E'; ctx.fillRect(0,headerH-4,W,4);
   ctx.fillStyle = '#F5F3E6';
   ctx.font = '900 30px Montserrat, sans-serif'; ctx.textAlign = 'left';
-  ctx.fillText('COTIZACIÓN', pad, 48);
+  ctx.fillText('COTIZACIÓN', innerPad, 48);
   ctx.font = '600 12px Montserrat, sans-serif'; ctx.fillStyle = 'rgba(245,243,230,0.85)';
-  ctx.fillText(new Date().toLocaleDateString('es-PE',{day:'2-digit',month:'long',year:'numeric'}), pad, 72);
+  ctx.fillText(new Date().toLocaleDateString('es-PE',{day:'2-digit',month:'long',year:'numeric'}), innerPad, 72);
   ctx.textAlign = 'right'; ctx.font = '900 16px Montserrat, sans-serif'; ctx.fillStyle = '#CC562E';
-  ctx.fillText('FABREC', W-pad, 44);
+  ctx.fillText('FABREC', W-innerPad, 44);
   ctx.font = '600 10.5px Montserrat, sans-serif'; ctx.fillStyle = 'rgba(245,243,230,0.8)';
-  ctx.fillText(subtitle, W-pad, 68);
+  ctx.fillText(subtitle, W-innerPad, 68);
 
-  let y = headerH + pad;
-  const colProducto = pad;
-  const colQty = pad + 320;
-  const colPrecio = pad + 560;
-  const colSubtotal = W - pad;
+  // Tabla header full width, justo después del header
+  let y = headerH;
+  const colProducto = innerPad;
+  const colQty = innerPad + 320;
+  const colPrecio = innerPad + 560;
+  const colSubtotal = W - innerPad;
 
-  ctx.fillStyle = 'rgba(13,56,39,0.06)'; ctx.fillRect(pad-8, y-4, W-pad*2+16, colHeaderH);
-  ctx.fillStyle = '#0D3827'; ctx.font = '800 10px Montserrat, sans-serif'; ctx.textAlign = 'left';
-  ctx.fillText('MODELO', colProducto, y+24);
+  ctx.fillStyle = '#0D3827'; ctx.fillRect(0, y, W, colHeaderH);
+  ctx.fillStyle = '#CC562E'; ctx.fillRect(0, y, 5, colHeaderH);
+  ctx.fillStyle = '#F5F3E6'; ctx.font = '800 10px Montserrat, sans-serif'; ctx.textAlign = 'left';
+  ctx.fillText('MODELO', colProducto, y+colHeaderH/2+4);
   ctx.textAlign = 'right';
-  ctx.fillText('CANTIDAD', colQty, y+24);
-  ctx.fillText('P.UNIT', colPrecio, y+24);
-  ctx.fillText('SUBTOTAL', colSubtotal, y+24);
-  y += colHeaderH + 6;
+  ctx.fillText('CANTIDAD', colQty, y+colHeaderH/2+4);
+  ctx.fillText('P.UNIT', colPrecio, y+colHeaderH/2+4);
+  ctx.fillText('SUBTOTAL', colSubtotal, y+colHeaderH/2+4);
+  y += colHeaderH;
 
   lines.forEach(function(l, i){
-    if(i%2===0){ ctx.fillStyle = 'rgba(245,243,230,0.6)'; ctx.fillRect(pad-8, y, W-pad*2+16, rowH); }
+    if(i%2===0){ ctx.fillStyle = 'rgba(245,243,230,0.6)'; ctx.fillRect(0, y, W, rowH); }
     ctx.fillStyle = '#0D3827'; ctx.font = '800 12px Montserrat, sans-serif'; ctx.textAlign = 'left';
-    ctx.fillText(displayName(l.productName), colProducto, y+26);
+    ctx.fillText(displayName(l.productName), colProducto, y+rowH/2+4);
 
     let qtyText;
     const p = state.products.find(function(x){return x.producto===l.productName});
@@ -2167,21 +2237,23 @@ async function buildQuoteImageBlobFromLines(lines, subtitle, total){
     if(l.unit==='millar') unitPrice = l.price / (1000/units);
 
     ctx.textAlign = 'right'; ctx.fillStyle = '#0D3827'; ctx.font = '800 12px Montserrat, sans-serif';
-    ctx.fillText(qtyText, colQty, y+26);
+    ctx.fillText(qtyText, colQty, y+rowH/2+4);
     ctx.fillStyle = '#3A5A4A'; ctx.font = '700 11.5px Montserrat, sans-serif';
-    ctx.fillText(fmtMoneyFull(unitPrice), colPrecio, y+26);
+    ctx.fillText(fmtMoneyFull(unitPrice), colPrecio, y+rowH/2+4);
     ctx.fillStyle = '#0D3827'; ctx.font = '900 12.5px Montserrat, sans-serif';
-    ctx.fillText(fmtMoneyFull(l.subtotal), colSubtotal, y+26);
+    ctx.fillText(fmtMoneyFull(l.subtotal), colSubtotal, y+rowH/2+4);
     y += rowH;
   });
 
-  y += 8;
-  ctx.fillStyle = '#0D3827'; ctx.fillRect(pad-8, y, W-pad*2+16, totalH-8);
+  // Total full width, justo después de la tabla
+  ctx.fillStyle = '#0D3827'; ctx.fillRect(0, y, W, totalH);
+  ctx.fillStyle = '#CC562E'; ctx.fillRect(0, y, W, 4);
   ctx.fillStyle = '#F5F3E6'; ctx.font = '800 12px Montserrat, sans-serif'; ctx.textAlign = 'left';
-  ctx.fillText('TOTAL', pad, y+34);
+  ctx.fillText('TOTAL', innerPad, y+totalH/2+4);
   ctx.font = '900 22px Montserrat, sans-serif'; ctx.textAlign = 'right'; ctx.fillStyle = '#CC562E';
-  ctx.fillText(fmtMoneyFull(total), W-pad, y+36);
+  ctx.fillText(fmtMoneyFull(total), W-innerPad, y+totalH/2+4);
 
+  // Borde naranja inferior
   ctx.fillStyle = '#CC562E'; ctx.fillRect(0, H-4, W, 4);
 
   return await new Promise(function(resolve, reject){
@@ -2204,9 +2276,11 @@ async function buildPriceImageBlob(){
   const unitKey = aq.pricesUnit || 'paquete';
   const unitLabel = unitKey==='millar' ? 'Millar' : 'Paquete';
   const dpr = 2;
-  const W = 900, pad = 34;
-  const headerH = 100, colHeaderH = 46, rowH = 40, footerH = 30;
-  const H = headerH + pad + colHeaderH + models.length*rowH + footerH + pad;
+  const W = 900;
+  const innerPad = 28; // padding interno para texto (tabla llega a los bordes)
+  const headerH = 100, colHeaderH = 46, rowH = 40, footerH = 4;
+  // Sin gaps ni pad exterior: tabla 100% ancho y alto
+  const H = headerH + colHeaderH + models.length*rowH + footerH;
 
   const canvas = document.createElement('canvas');
   canvas.width = W*dpr; canvas.height = H*dpr;
@@ -2214,51 +2288,55 @@ async function buildPriceImageBlob(){
   ctx.scale(dpr,dpr);
   ctx.fillStyle = '#F5F3E6'; ctx.fillRect(0,0,W,H);
 
+  // Header full width
   ctx.fillStyle = '#0D3827'; ctx.fillRect(0,0,W,headerH);
   ctx.fillStyle = '#CC562E'; ctx.fillRect(0,headerH-4,W,4);
   ctx.fillStyle = '#F5F3E6';
   ctx.font = '900 30px Montserrat, sans-serif'; ctx.textAlign='left';
-  ctx.fillText('LISTA DE PRECIOS', pad, 48);
+  ctx.fillText('LISTA DE PRECIOS', innerPad, 48);
   ctx.font = '600 12px Montserrat, sans-serif'; ctx.fillStyle='rgba(245,243,230,0.85)';
-  ctx.fillText(new Date().toLocaleDateString('es-PE',{day:'2-digit',month:'long',year:'numeric'}), pad, 72);
+  ctx.fillText(new Date().toLocaleDateString('es-PE',{day:'2-digit',month:'long',year:'numeric'}), innerPad, 72);
   ctx.textAlign='right'; ctx.font='900 16px Montserrat, sans-serif'; ctx.fillStyle='#CC562E';
-  ctx.fillText('FABREC', W-pad, 44);
+  ctx.fillText('FABREC', W-innerPad, 44);
   ctx.font='600 10.5px Montserrat, sans-serif'; ctx.fillStyle='rgba(245,243,230,0.8)';
-  ctx.fillText('Precios por '+unitLabel.toLowerCase(), W-pad, 68);
+  ctx.fillText('Precios por '+unitLabel.toLowerCase(), W-innerPad, 68);
 
-  let y = headerH + pad;
-  const colModelo = pad;
-  const colUnidad = pad + 320;
-  const colMenor = pad + 520;
-  const colMayor = W - pad;
+  // Tabla header full width, justo después del header
+  let y = headerH;
+  const colModelo = innerPad;
+  const colUnidad = innerPad + 320;
+  const colMenor = innerPad + 520;
+  const colMayor = W - innerPad;
 
-  ctx.fillStyle = 'rgba(13,56,39,0.06)'; ctx.fillRect(pad-8, y-4, W-pad*2+16, colHeaderH);
-  ctx.fillStyle = '#0D3827'; ctx.font = '800 10px Montserrat, sans-serif'; ctx.textAlign='left';
-  ctx.fillText('MODELO', colModelo, y+26);
-  ctx.fillText('UNIDAD', colUnidad, y+26);
+  ctx.fillStyle = '#0D3827'; ctx.fillRect(0, y, W, colHeaderH);
+  ctx.fillStyle = '#CC562E'; ctx.fillRect(0, y, 5, colHeaderH);
+  ctx.fillStyle = '#F5F3E6'; ctx.font = '800 10px Montserrat, sans-serif'; ctx.textAlign='left';
+  ctx.fillText('MODELO', colModelo, y+colHeaderH/2+4);
+  ctx.fillText('UNIDAD', colUnidad, y+colHeaderH/2+4);
   ctx.textAlign='right';
-  ctx.fillText('AL POR MENOR', colMenor, y+26);
-  ctx.fillText('AL POR MAYOR', colMayor, y+26);
-  y += colHeaderH + 6;
+  ctx.fillText('AL POR MENOR', colMenor, y+colHeaderH/2+4);
+  ctx.fillText('AL POR MAYOR', colMayor, y+colHeaderH/2+4);
+  y += colHeaderH;
 
   models.forEach(function(name, i){
     const p = state.products.find(function(x){return x.producto===name});
     const units = (p && p.unidades_paquete) || 100;
     const factor = unitFactor(unitKey, units);
-    if(i%2===0){ ctx.fillStyle='rgba(245,243,230,0.6)'; ctx.fillRect(pad-8, y, W-pad*2+16, rowH); }
+    if(i%2===0){ ctx.fillStyle='rgba(245,243,230,0.6)'; ctx.fillRect(0, y, W, rowH); }
     ctx.fillStyle='#0D3827'; ctx.font='800 12px Montserrat, sans-serif'; ctx.textAlign='left';
-    ctx.fillText(displayName(name), colModelo, y+25);
+    ctx.fillText(displayName(name), colModelo, y+rowH/2+4);
     ctx.fillStyle='#3A5A4A'; ctx.font='700 11px Montserrat, sans-serif';
-    ctx.fillText(unitLabel, colUnidad, y+25);
+    ctx.fillText(unitLabel, colUnidad, y+rowH/2+4);
     const menorVal = p ? (p[menorField]||0) : 0;
     const mayorVal = p ? (p[mayorField]||0) : 0;
     ctx.fillStyle='#0D3827'; ctx.font='900 12.5px Montserrat, sans-serif'; ctx.textAlign='right';
-    ctx.fillText(fmtMoneyFull(menorVal*factor), colMenor, y+25);
+    ctx.fillText(fmtMoneyFull(menorVal*factor), colMenor, y+rowH/2+4);
     ctx.fillStyle='#CC562E';
-    ctx.fillText(fmtMoneyFull(mayorVal*factor), colMayor, y+25);
+    ctx.fillText(fmtMoneyFull(mayorVal*factor), colMayor, y+rowH/2+4);
     y += rowH;
   });
 
+  // Borde naranja inferior
   ctx.fillStyle='#CC562E'; ctx.fillRect(0, H-4, W, 4);
 
   return await new Promise(function(resolve, reject){
