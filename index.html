@@ -16,6 +16,7 @@
 <script src="https://cdn.jsdelivr.net/npm/localforage@1.10.0/dist/localforage.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <style>
 :root{
   --verde-oscuro:#0D3827;
@@ -220,8 +221,9 @@ body.mobile-nav-open .mobile-nav-overlay{display:block}
 .product-card.selected .pc-check::after{content:'';width:11px;height:6px;border-left:2.5px solid var(--blanco);border-bottom:2.5px solid var(--blanco);transform:rotate(-45deg) translate(1px,-2px)}
 .pc-name{font-size:15px;font-weight:900;letter-spacing:-0.3px;line-height:1.2;flex:1;min-width:0}
 .pc-units{font-size:9.5px;font-weight:800;color:var(--text-muted);background:var(--surface-alt);padding:4px 9px;border-radius:999px;border:1px solid var(--border);white-space:nowrap;flex-shrink:0}
-.pc-prices{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+.pc-prices{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .pc-prices.two-col{grid-template-columns:1fr 1fr}
+.pc-prices.three-col{grid-template-columns:1fr 1fr 1fr}
 .pc-price{padding:10px 8px;border-radius:var(--radius-sm);display:flex;flex-direction:column;gap:2px;text-align:center}
 .pc-price.menor{background:rgba(204,86,46,0.1);border:1px solid rgba(204,86,46,0.3)}
 .pc-price.mayor{background:rgba(13,56,39,0.06);border:1px solid rgba(13,56,39,0.18)}
@@ -235,6 +237,17 @@ body.mobile-nav-open .mobile-nav-overlay{display:block}
 .pc-price.mayor .pc-price-value{color:var(--text)}
 .pc-price.final .pc-price-value{color:var(--naranja)}
 .pc-note{font-size:9.5px;font-weight:700;color:var(--text-soft);text-align:center;letter-spacing:0.2px}
+/* Panel de cantidad para productos seleccionados */
+.pc-qty-panel{margin-top:10px;padding:12px;background:rgba(204,86,46,0.06);border:1.5px solid rgba(204,86,46,0.3);border-radius:var(--radius-sm);display:flex;flex-direction:column;gap:10px;animation:fadeIn 0.18s ease}
+.pc-qty-panel-head{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.pc-qty-panel-title{font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:0.5px;color:var(--naranja)}
+.pc-qty-panel-row{display:flex;gap:8px;align-items:stretch;flex-wrap:wrap}
+.pc-qty-input{flex:1;min-width:70px;padding:8px 10px;background:var(--surface);border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;font-weight:800;color:var(--text);outline:none;text-align:center}
+.pc-qty-input:focus{border-color:var(--naranja)}
+.pc-qty-unit{display:inline-flex;background:var(--surface);border:1.5px solid var(--border);border-radius:8px;padding:2px;gap:2px;flex-shrink:0}
+.pc-qty-unit button{background:transparent;border:none;padding:6px 11px;border-radius:6px;font-family:inherit;font-size:10.5px;font-weight:800;color:var(--text-muted);cursor:pointer;transition:all 0.15s;white-space:nowrap}
+.pc-qty-unit button.active{background:var(--verde-oscuro);color:var(--blanco)}
+.pc-qty-info{font-size:10px;font-weight:700;color:var(--text-muted);text-align:center}
 
 .quote-bar{position:sticky;bottom:16px;margin-top:20px;background:var(--verde-oscuro);color:var(--blanco);padding:14px 20px;border-radius:var(--radius);box-shadow:0 12px 30px rgba(13,56,39,0.3);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;z-index:70}
 .quote-bar-info{font-size:13px;font-weight:800}
@@ -469,7 +482,7 @@ html.dark .qw-mode-btn.auto-gray{background:rgba(245,243,230,0.1);color:var(--te
 <div class="mobile-topbar" id="mobileTopbar">
   <button class="mobile-menu-btn" onclick="toggleMobileNav()">☰</button>
   <div class="mobile-brand">FABREC</div>
-  <div class="mobile-user" id="mobileUserGreeting" onclick="openUserNameModal()"></div>
+  <div style="flex:1"></div>
 </div>
 <div class="mobile-nav-overlay" id="mobileNavOverlay" onclick="closeMobileNav()"></div>
 
@@ -480,13 +493,6 @@ html.dark .qw-mode-btn.auto-gray{background:rgba(245,243,230,0.1);color:var(--te
       <div class="brand-info">
         <div class="brand-name">FABREC</div>
         <div class="brand-tag">Gestión Comercial</div>
-      </div>
-    </div>
-    <div class="user-box" onclick="openUserNameModal()" title="Cambiar nombre">
-      <div class="user-avatar" id="userAvatar">?</div>
-      <div class="user-info">
-        <div class="user-greeting" id="userGreeting">Buenos días</div>
-        <div class="user-name" id="userName">Configura tu nombre</div>
       </div>
     </div>
     <nav class="sidebar-nav">
@@ -560,14 +566,21 @@ html.dark .qw-mode-btn.auto-gray{background:rgba(245,243,230,0.1);color:var(--te
       <div class="search-box"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input type="text" id="searchProducts" placeholder="Buscar modelo..." oninput="renderProducts()"></div>
     </div>
     <div id="productsGrid" class="product-grid"></div>
-    <div id="quoteBar" class="quote-bar" style="display:none;">
-      <div class="quote-bar-info" id="quoteBarInfo">0 productos seleccionados</div>
-      <div class="quote-bar-actions">
-        <button type="button" class="btn-limpiar" onclick="clearProductSelection()">Limpiar</button>
-        <button type="button" class="btn btn-accent" onclick="continueToQuote()">
-          <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
-          Continuar
-        </button>
+    <div id="quoteBar" class="quote-bar" style="display:none;flex-direction:column;align-items:stretch;gap:10px;">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;width:100%;">
+        <div id="quoteBarChips" style="display:flex;gap:6px;flex-wrap:wrap;flex:1;min-width:0;"></div>
+        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+          <input type="number" id="quoteBarQty" value="0" min="0" step="1" placeholder="0" style="width:56px;padding:6px 8px;background:rgba(245,243,230,0.15);border:1px solid rgba(245,243,230,0.3);border-radius:6px;color:var(--blanco);font-family:inherit;font-size:13px;font-weight:800;text-align:center;outline:none;" oninput="setActiveProductQty(this.value)">
+          <div style="display:inline-flex;background:rgba(245,243,230,0.1);border-radius:6px;padding:2px;gap:2px;">
+            <button id="qbBtnPaq" onclick="setActiveProductUnit('paquete')" style="background:var(--naranja);border:none;padding:5px 10px;border-radius:4px;color:var(--blanco);font-family:inherit;font-size:10px;font-weight:800;cursor:pointer;">Paq</button>
+            <button id="qbBtnMil" onclick="setActiveProductUnit('millar')" style="background:transparent;border:none;padding:5px 10px;border-radius:4px;color:rgba(245,243,230,0.6);font-family:inherit;font-size:10px;font-weight:800;cursor:pointer;">Mil</button>
+          </div>
+          <button type="button" class="btn-limpiar" onclick="clearProductSelection()">Limpiar</button>
+          <button type="button" class="btn btn-accent" onclick="continueToQuote()">
+            <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+            Continuar
+          </button>
+        </div>
       </div>
     </div>
   </section>
@@ -627,12 +640,27 @@ html.dark .qw-mode-btn.auto-gray{background:rgba(245,243,230,0.1);color:var(--te
   </section>
 
   <section class="view" id="view-metrics">
-    <div class="page-head"><div><h1 class="page-title">Métricas</h1><p class="page-subtitle">Análisis visual de tu actividad</p></div></div>
+    <div class="page-head">
+      <div><h1 class="page-title">Métricas</h1><p class="page-subtitle">Análisis visual de tu actividad</p></div>
+      <div class="page-actions">
+        <button class="btn btn-secondary" onclick="viewOtrosMedidas()">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          Ver "Otros"
+        </button>
+        <button class="btn btn-accent" onclick="openMonthlyReportModal()">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+          Reporte mensual PDF
+        </button>
+      </div>
+    </div>
     <div class="chart-card">
       <div class="chart-card-head">
         <div class="chart-title">Estadísticas mensuales</div>
         <button class="btn btn-secondary btn-sm" onclick="downloadChartImage('revenue','estadisticas_mensuales')">
           <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Imagen
+        </button>
+        <button class="btn btn-secondary btn-sm" onclick="copyChartImage('revenue')">
+          <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copiar
         </button>
       </div>
       <div class="chart-controls">
@@ -649,6 +677,9 @@ html.dark .qw-mode-btn.auto-gray{background:rgba(245,243,230,0.1);color:var(--te
         <div class="chart-title">Distribución por zona</div>
         <button class="btn btn-secondary btn-sm" onclick="downloadChartImage('zones','distribucion_zonas')">
           <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Imagen
+        </button>
+        <button class="btn btn-secondary btn-sm" onclick="copyChartImage('zones')">
+          <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copiar
         </button>
       </div>
       <div class="chart-controls">
@@ -673,8 +704,8 @@ html.dark .qw-mode-btn.auto-gray{background:rgba(245,243,230,0.1);color:var(--te
       </div>
       <div class="chart-canvas-wrap"><canvas id="chartZones"></canvas></div>
     </div>
-    <div class="chart-card"><div class="chart-card-head"><div class="chart-title">Ventas por medida</div><button class="btn btn-secondary btn-sm" onclick="downloadChartImage('sizes','ventas_por_medida')"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Imagen</button></div><div class="chart-canvas-wrap"><canvas id="chartSizes"></canvas></div></div>
-    <div class="chart-card"><div class="chart-card-head"><div class="chart-title">Top 10 clientes por monto</div><button class="btn btn-secondary btn-sm" onclick="downloadChartImage('topClients','top_clientes')"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Imagen</button></div><div class="chart-canvas-wrap"><canvas id="chartTopClients"></canvas></div></div>
+    <div class="chart-card"><div class="chart-card-head"><div class="chart-title">Ventas por medida</div><div style="display:flex;gap:6px;"><button class="btn btn-secondary btn-sm" onclick="downloadChartImage('sizes','ventas_por_medida')"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Imagen</button><button class="btn btn-secondary btn-sm" onclick="copyChartImage('sizes')"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copiar</button></div></div><div class="chart-canvas-wrap"><canvas id="chartSizes"></canvas></div></div>
+    <div class="chart-card"><div class="chart-card-head"><div class="chart-title">Top 10 clientes por monto</div><div style="display:flex;gap:6px;"><button class="btn btn-secondary btn-sm" onclick="downloadChartImage('topClients','top_clientes')"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Imagen</button><button class="btn btn-secondary btn-sm" onclick="copyChartImage('topClients')"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copiar</button></div></div><div class="chart-canvas-wrap"><canvas id="chartTopClients"></canvas></div></div>
   </section>
 
   <section class="view" id="view-redes">
@@ -682,7 +713,7 @@ html.dark .qw-mode-btn.auto-gray{background:rgba(245,243,230,0.1);color:var(--te
       <div><h1 class="page-title">Redes</h1><p class="page-subtitle">Canal de difusión y equipo comercial</p></div>
     </div>
 
-    <div class="redes-channel-card">
+    <div class="redes-channel-card" onclick="copyWhatsAppMessage()" style="cursor:pointer;" title="Toca para copiar el mensaje">
       <div class="redes-channel-icon">
         <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
       </div>
@@ -690,11 +721,15 @@ html.dark .qw-mode-btn.auto-gray{background:rgba(245,243,230,0.1);color:var(--te
         <div class="redes-channel-title">Mensaje de WhatsApp</div>
         <div class="redes-channel-desc">Hola, ¿qué tal? 👋 Comuníquese con el número oficial de FABREC: +51 934 568 359</div>
       </div>
-      <div class="redes-channel-actions">
-        <button class="btn btn-accent" onclick="copyWhatsAppMessage()">
-          <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-          Copiar mensaje
-        </button>
+    </div>
+
+    <div class="redes-channel-card" onclick="copyClientInfoMessage()" style="cursor:pointer;" title="Toca para copiar el mensaje">
+      <div class="redes-channel-icon">
+        <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg>
+      </div>
+      <div class="redes-channel-info">
+        <div class="redes-channel-title">Mensaje: Datos del cliente</div>
+        <div class="redes-channel-desc">📋 Necesitaré la siguiente información: 👤 Nombre · 🆔 DNI · 🏢 RUC (opcional) · 📍 Dirección · 📱 Teléfono</div>
       </div>
     </div>
 
@@ -736,16 +771,6 @@ html.dark .qw-mode-btn.auto-gray{background:rgba(245,243,230,0.1);color:var(--te
       <div id="uploadStatus" class="hidden" style="padding:12px 14px;background:var(--surface-alt);border-radius:10px;font-size:12px;font-weight:700;color:var(--text-muted);"></div>
     </div>
     <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('modalUpload')">Cancelar</button></div>
-  </div>
-</div>
-
-<div class="overlay" id="modalUserName" onclick="closeIfBg(event,'modalUserName')">
-  <div class="modal" style="max-width:420px;">
-    <div class="modal-header"><div class="modal-title">Tu nombre</div><button class="modal-close" onclick="closeModal('modalUserName')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
-    <div class="modal-body">
-      <div class="field"><label class="field-label">Nombre</label><input type="text" id="userNameInput" class="field-input" placeholder="Ej: King"></div>
-    </div>
-    <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('modalUserName')">Cancelar</button><button class="btn btn-primary" onclick="saveUserName()">Guardar</button></div>
   </div>
 </div>
 
@@ -883,6 +908,49 @@ html.dark .qw-mode-btn.auto-gray{background:rgba(245,243,230,0.1);color:var(--te
   </div>
 </div>
 
+<div class="overlay" id="modalMonthlyReport" onclick="closeIfBg(event,'modalMonthlyReport')">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-header"><div class="modal-title">Reporte mensual<small>Elige el mes a generar</small></div><button class="modal-close" onclick="closeModal('modalMonthlyReport')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="modal-body">
+      <div class="field">
+        <label class="field-label">Mes</label>
+        <select id="reportMonthSelect" class="field-select"></select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modalMonthlyReport')">Cancelar</button>
+      <button class="btn btn-accent" onclick="generateMonthlyReport()">Generar PDF</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="modalDownloadFormat" onclick="closeIfBg(event,'modalDownloadFormat')">
+  <div class="modal" style="max-width:380px;">
+    <div class="modal-header"><div class="modal-title">Descargar datos<small>Elige el formato de exportación</small></div><button class="modal-close" onclick="closeModal('modalDownloadFormat')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="modal-body">
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <button class="btn btn-secondary" onclick="downloadBackupJSON()" style="justify-content:flex-start;padding:14px 16px;">
+          <svg viewBox="0 0 24 24" style="width:18px;height:18px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          JSON (respaldo completo)
+        </button>
+        <button class="btn btn-secondary" onclick="downloadBackupExcel()" style="justify-content:flex-start;padding:14px 16px;">
+          <svg viewBox="0 0 24 24" style="width:18px;height:18px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
+          Excel (mismo formato que importación)
+        </button>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('modalDownloadFormat')">Cancelar</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="modalOtrosMedidas" onclick="closeIfBg(event,'modalOtrosMedidas')">
+  <div class="modal" style="max-width:560px;">
+    <div class="modal-header"><div class="modal-title">Botellas en "Otros"<small>Vincula cada una a un modelo existente</small></div><button class="modal-close" onclick="closeModal('modalOtrosMedidas')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="modal-body" id="otrosMedidasBody"></div>
+    <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('modalOtrosMedidas')">Cerrar</button></div>
+  </div>
+</div>
+
 <div class="overlay" id="modalRedesPrecios" onclick="closeIfBg(event,'modalRedesPrecios')">
   <div class="modal" style="max-width:820px;">
     <div class="modal-header">
@@ -953,13 +1021,13 @@ const NETWORKS = [
   {name:'CANAL DE WHATSAPP', label:'Canal de difusión FABREC', url:WA_CHANNEL_URL,                avatar:'W', alt:true, isChannel:true}
 ];
 const VENDORS = [
-  {name:'KING',    zone:'Jefe de Ventas', phone:'+51 922 796 815', waPhone:'51922796815', isJefe:true},
+  {name:'KING',    zone:'Jefe de Ventas', phone:'+51 934 568 359', waPhone:'51934568359', isJefe:true},
   {name:'ORLENIS', zone:'Cono Sur',   phone:'+51 949 807 573', waPhone:'51949807573'},
   {name:'JUNIOR',  zone:'La Parada',  phone:'+51 921 763 963', waPhone:'51921763963'},
   {name:'YOLANDA', zone:'Cono Norte', phone:'+51 934 568 306', waPhone:'51934568306'},
   {name:'GERALD',  zone:'Cono Este',  phone:'+51 994 227 063', waPhone:'51994227063'}
 ];
-const JEFE_VENTAS = {name:'King · Jefe de Ventas', phone:'+51 922 796 815', waPhone:'51922796815'};
+const JEFE_VENTAS = {name:'King · Jefe de Ventas', phone:'+51 934 568 359', waPhone:'51934568359'};
 
 const store = localforage.createInstance({name:'fabrec_comercial',storeName:'data'});
 
@@ -1066,40 +1134,6 @@ function setupPhoneInput(id){
   el.addEventListener('blur', function(){ if(el.value.trim()==='+51') el.value = ''; });
 }
 
-function getGreeting(){
-  const h = new Date().getHours();
-  if(h < 12) return 'Buenos días';
-  if(h < 19) return 'Buenas tardes';
-  return 'Buenas noches';
-}
-function updateUserUI(){
-  const greeting = getGreeting();
-  const name = state.userName && state.userName.trim() ? state.userName.trim() : '';
-  const displayName = name || 'Configura tu nombre';
-  const initial = name ? name.trim().charAt(0).toUpperCase() : '?';
-  const gEl = document.getElementById('userGreeting');
-  const nEl = document.getElementById('userName');
-  const aEl = document.getElementById('userAvatar');
-  if(gEl) gEl.textContent = greeting;
-  if(nEl) nEl.textContent = displayName;
-  if(aEl) aEl.textContent = initial;
-  const mEl = document.getElementById('mobileUserGreeting');
-  if(mEl) mEl.innerHTML = '<small>'+esc(greeting)+'</small>'+esc(displayName.toUpperCase());
-}
-function openUserNameModal(){
-  const input = document.getElementById('userNameInput');
-  if(input) input.value = state.userName || '';
-  openModal('modalUserName');
-  setTimeout(function(){ if(input) input.focus(); }, 100);
-}
-function saveUserName(){
-  const input = document.getElementById('userNameInput');
-  state.userName = input ? input.value.trim().toUpperCase() : '';
-  saveState();
-  updateUserUI();
-  closeModal('modalUserName');
-  toast('Nombre guardado','success');
-}
 function toggleSidebar(){
   state.ui.sidebarCollapsed = !state.ui.sidebarCollapsed;
   document.body.classList.toggle('sidebar-collapsed', state.ui.sidebarCollapsed);
@@ -1252,12 +1286,15 @@ function closeModal(id){document.getElementById(id).classList.remove('open')}
 function closeIfBg(e,id){if(e.target.id===id)closeModal(id)}
 
 function downloadBackup(){
+  openModal('modalDownloadFormat');
+}
+function downloadBackupJSON(){
+  closeModal('modalDownloadFormat');
   const data = {
     version: 16, backupDate: new Date().toISOString(),
     clients: state.clients, sales: state.sales, quotes: state.quotes,
     products: state.products, priceUnit: state.priceUnit, ui: state.ui,
-    activeQuote: state.activeQuote, lastImport: state.lastImport,
-    userName: state.userName
+    activeQuote: state.activeQuote, lastImport: state.lastImport
   };
   const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
   const url = URL.createObjectURL(blob);
@@ -1265,12 +1302,57 @@ function downloadBackup(){
   a.href = url; a.download = 'fabrec_respaldo_'+new Date().toISOString().split('T')[0]+'.json';
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
   setTimeout(function(){URL.revokeObjectURL(url)},2000);
-  toast('Respaldo descargado','success');
+  toast('Respaldo JSON descargado','success');
+}
+function downloadBackupExcel(){
+  closeModal('modalDownloadFormat');
+  try{
+    // Generar Excel con el mismo formato que se importa:
+    // Una fila por cada item de venta, con columnas: fecha, cliente, celular, ruc, zona, vendedor, cantidad, medida, precio, total
+    const rows = [];
+    state.sales.forEach(function(s){
+      const c = s.clientId ? getClient(s.clientId) : null;
+      const cliente = s.clientName || (c && c.name) || '';
+      const celular = s.phone || (c && c.phone) || '';
+      const ruc = s.ruc || (c && c.ruc) || '';
+      const zona = s.zone || '';
+      const vendedor = s.vendor || '';
+      (s.items||[]).forEach(function(it){
+        rows.push({
+          fecha: s.date,
+          cliente: cliente,
+          celular: celular,
+          ruc: ruc,
+          zona: zona,
+          vendedor: vendedor,
+          cantidad: it.cantidad,
+          medida: it.medida,
+          precio: it.precio,
+          total: it.total
+        });
+      });
+    });
+    if(rows.length === 0){ toast('No hay ventas para exportar','error'); return; }
+    const ws = XLSX.utils.json_to_sheet(rows);
+    // Ajustar anchos de columna
+    ws['!cols'] = [
+      {wch:12}, {wch:28}, {wch:16}, {wch:14}, {wch:14}, {wch:12}, {wch:10}, {wch:18}, {wch:12}, {wch:12}
+    ];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Ventas');
+    XLSX.writeFile(wb, 'fabrec_ventas_'+new Date().toISOString().split('T')[0]+'.xlsx');
+    toast('Excel descargado ('+rows.length+' líneas)','success');
+  }catch(err){ console.error(err); toast('Error generando Excel','error'); }
 }
 
 /* PRECIOS */
 function togglePriceUnit(){ setPriceUnit(state.priceUnit==='paquete'?'millar':'paquete'); }
 function setPriceUnit(unit){ state.priceUnit = unit; saveState(); renderProducts(); }
+// Mapa de cantidades por producto seleccionado: {productName: {qty, unit}}
+function ensureProductQtys(){
+  if(!state.productQtys) state.productQtys = {};
+}
+let activeSelectedProduct = null; // producto activo para el input de cantidad
 function renderProducts(){
   updateTgl2('priceUnitToggle', state.priceUnit==='millar');
   const cont = document.getElementById('productsGrid');
@@ -1286,24 +1368,26 @@ function renderProducts(){
     updateQuoteBar(); return;
   }
   const isMillar = state.priceUnit==='millar';
+  ensureProductQtys();
   cont.innerHTML = products.map(function(p){
     const units = p.unidades_paquete || 100;
     const paqPerMillar = Math.round(1000/units*100)/100;
     const isSelected = state.selectedProducts.indexOf(p.producto)>=0;
-    let pricesHTML;
-    if(isMillar){
-      pricesHTML = '<div class="pc-prices two-col">'
-        + '<div class="pc-price menor"><span class="pc-price-label">Millar</span><span class="pc-price-value">'+fmtMoneyFull((p.precio_menor||0)*paqPerMillar)+'</span></div>'
-        + '<div class="pc-price final"><span class="pc-price-label">Final (millar)</span><span class="pc-price-value">'+fmtMoneyFull((p.precio_cliente_final||0)*paqPerMillar)+'</span></div>'
-        + '</div>';
-    } else {
-      pricesHTML = '<div class="pc-prices">'
-        + '<div class="pc-price menor"><span class="pc-price-label">Menor</span><span class="pc-price-value">'+fmtMoneyFull(p.precio_menor||0)+'</span></div>'
-        + '<div class="pc-price mayor"><span class="pc-price-label">Mayor</span><span class="pc-price-value">'+fmtMoneyFull(p.precio_mayor||0)+'</span></div>'
-        + '<div class="pc-price final"><span class="pc-price-label">Final</span><span class="pc-price-value">'+fmtMoneyFull(p.precio_cliente_final||0)+'</span></div>'
-        + '</div>';
-    }
-    return '<div class="product-card '+(isSelected?'selected':'')+'" onclick="toggleProductSelect(\''+esc(p.producto).replace(/'/g,"\\'")+'\')">'
+    const safeName = esc(p.producto).replace(/'/g,"\\'");
+    // 4 precios: menor, mayor, cf menor, cf mayor (cuadrícula 2x2)
+    const f = isMillar ? paqPerMillar : 1;
+    const menorVal = (p.precio_menor||0) * f;
+    const mayorVal = (p.precio_mayor||0) * f;
+    const cfMenorVal = (p.precio_cliente_final||0) * f;
+    const cfMayorVal = (p.precio_menor||0) * f;
+    const lblPrefix = isMillar ? 'Millar ' : '';
+    let pricesHTML = '<div class="pc-prices">'
+      + '<div class="pc-price menor"><span class="pc-price-label">'+lblPrefix+'Menor</span><span class="pc-price-value">'+fmtMoneyFull(menorVal)+'</span></div>'
+      + '<div class="pc-price mayor"><span class="pc-price-label">'+lblPrefix+'Mayor</span><span class="pc-price-value">'+fmtMoneyFull(mayorVal)+'</span></div>'
+      + '<div class="pc-price menor"><span class="pc-price-label">'+lblPrefix+'CF Menor</span><span class="pc-price-value">'+fmtMoneyFull(cfMenorVal)+'</span></div>'
+      + '<div class="pc-price mayor"><span class="pc-price-label">'+lblPrefix+'CF Mayor</span><span class="pc-price-value">'+fmtMoneyFull(cfMayorVal)+'</span></div>'
+      + '</div>';
+    return '<div class="product-card '+(isSelected?'selected':'')+'" onclick="toggleProductSelect(\''+safeName+'\')">'
       + '<div class="pc-header">'
       + '<div class="pc-check"></div>'
       + '<div class="pc-name">'+esc(displayName(p.producto))+'</div>'
@@ -1315,29 +1399,116 @@ function renderProducts(){
   }).join('');
   updateQuoteBar();
 }
+function setProductQty(productName, val){
+  ensureProductQtys();
+  const qty = parseInt(val)||1;
+  if(qty < 1) return;
+  if(!state.productQtys[productName]) state.productQtys[productName] = {qty:1, unit:state.priceUnit};
+  state.productQtys[productName].qty = qty;
+  saveState();
+  // No re-render para no perder el foco del input
+}
+function setProductUnit(productName, unit){
+  ensureProductQtys();
+  if(!state.productQtys[productName]) state.productQtys[productName] = {qty:1, unit:unit};
+  state.productQtys[productName].unit = unit;
+  saveState();
+  updateQuoteBar(); // solo actualiza la barra, no las cards
+}
 function toggleProductSelect(productName){
   const idx = state.selectedProducts.indexOf(productName);
-  if(idx>=0) state.selectedProducts.splice(idx,1); else state.selectedProducts.push(productName);
+  ensureProductQtys();
+  if(idx>=0){
+    state.selectedProducts.splice(idx,1);
+    delete state.productQtys[productName];
+    if(activeSelectedProduct === productName) activeSelectedProduct = null;
+    // Si hay otros seleccionados, activar el último
+    if(state.selectedProducts.length > 0){
+      activeSelectedProduct = state.selectedProducts[state.selectedProducts.length - 1];
+    }
+  } else {
+    state.selectedProducts.push(productName);
+    state.productQtys[productName] = {qty:0, unit:state.priceUnit};
+    activeSelectedProduct = productName; // el nuevo seleccionado se vuelve activo
+  }
+  saveState();
   renderProducts();
+  updateQuoteBar();
 }
-function clearProductSelection(){state.selectedProducts=[];renderProducts()}
+function clearProductSelection(){
+  state.selectedProducts=[];
+  state.productQtys = {};
+  activeSelectedProduct = null;
+  saveState();
+  renderProducts();
+  updateQuoteBar();
+}
+function setActiveProduct(productName){
+  activeSelectedProduct = productName;
+  updateQuoteBar();
+}
+function setActiveProductUnit(unit){
+  if(!activeSelectedProduct) return;
+  ensureProductQtys();
+  if(!state.productQtys[activeSelectedProduct]) state.productQtys[activeSelectedProduct] = {qty:0, unit:unit};
+  state.productQtys[activeSelectedProduct].unit = unit;
+  saveState();
+  updateQuoteBar();
+}
+function setActiveProductQty(val){
+  if(!activeSelectedProduct) return;
+  ensureProductQtys();
+  const qty = parseInt(val)||0;
+  if(!state.productQtys[activeSelectedProduct]) state.productQtys[activeSelectedProduct] = {qty:0, unit:state.priceUnit};
+  state.productQtys[activeSelectedProduct].qty = qty;
+  saveState();
+}
 function updateQuoteBar(){
   const bar = document.getElementById('quoteBar');
-  const info = document.getElementById('quoteBarInfo');
+  const chips = document.getElementById('quoteBarChips');
+  const qtyInput = document.getElementById('quoteBarQty');
+  const btnPaq = document.getElementById('qbBtnPaq');
+  const btnMil = document.getElementById('qbBtnMil');
   const n = state.selectedProducts.length;
   if(n>0){
     bar.style.display = 'flex';
-    info.textContent = n+' producto'+(n===1?'':'s')+' seleccionado'+(n===1?'':'s');
+    // Renderizar chips de modelos seleccionados
+    ensureProductQtys();
+    if(chips){
+      chips.innerHTML = state.selectedProducts.map(function(name){
+        const safeName = esc(name).replace(/'/g,"\\'");
+        const isActive = name === activeSelectedProduct;
+        return '<button onclick="setActiveProduct(\''+safeName+'\')" style="background:'+(isActive?'var(--naranja)':'rgba(245,243,230,0.15)')+';border:1px solid '+(isActive?'var(--naranja)':'rgba(245,243,230,0.3)')+';color:var(--blanco);padding:5px 11px;border-radius:999px;font-family:inherit;font-size:11px;font-weight:800;cursor:pointer;white-space:nowrap;">'+esc(displayName(name))+'</button>';
+      }).join('');
+    }
+    // Sincronizar input con el producto activo
+    if(!activeSelectedProduct && state.selectedProducts.length > 0){
+      activeSelectedProduct = state.selectedProducts[state.selectedProducts.length - 1];
+    }
+    if(activeSelectedProduct && qtyInput){
+      const qd = state.productQtys[activeSelectedProduct] || {qty:0, unit:state.priceUnit};
+      qtyInput.value = qd.qty || 0;
+      const isPaq = (qd.unit || 'paquete') === 'paquete';
+      if(btnPaq){ btnPaq.style.background = isPaq ? 'var(--naranja)' : 'transparent'; btnPaq.style.color = isPaq ? 'var(--blanco)' : 'rgba(245,243,230,0.6)'; }
+      if(btnMil){ btnMil.style.background = !isPaq ? 'var(--naranja)' : 'transparent'; btnMil.style.color = !isPaq ? 'var(--blanco)' : 'rgba(245,243,230,0.6)'; }
+    } else if(qtyInput){
+      qtyInput.value = 0;
+    }
   } else {
     bar.style.display = 'none';
+    activeSelectedProduct = null;
   }
 }
 
 function continueToQuote(){
   if(state.selectedProducts.length===0){toast('Selecciona al menos un producto','error');return}
+  ensureProductQtys();
   state.activeQuote = {
     quoteId: null,
-    lines: state.selectedProducts.map(function(name){return {productName:name, qty:1, unit:state.priceUnit}}),
+    lines: state.selectedProducts.map(function(name){
+      const qd = state.productQtys[name] || {qty:1, unit:state.priceUnit};
+      return {productName:name, qty:qd.qty||1, unit:qd.unit||state.priceUnit};
+    }),
     mode: 'quote',
     priceOverride: null,
     pricesUnit: 'paquete',
@@ -1346,6 +1517,8 @@ function continueToQuote(){
   };
   saveState();
   state.selectedProducts = [];
+  state.productQtys = {};
+  saveState();
   switchView('quotes');
   toast('Cotización iniciada','success');
 }
@@ -1386,9 +1559,11 @@ async function buildAllPricesImageBlob(){
 
   const unitKey = state.priceUnit === 'millar' ? 'millar' : 'paquete';
   const unitLabel = unitKey === 'millar' ? 'Millar' : 'Paquete';
-  // En modo millar, etiquetar columnas con "Millar al por menor" / "Millar al por mayor"
-  const menorLabel = unitKey === 'millar' ? 'MILLAR AL POR MENOR' : 'AL POR MENOR';
-  const mayorLabel = unitKey === 'millar' ? 'MILLAR AL POR MAYOR' : 'AL POR MAYOR';
+  // En modo millar, etiquetar columnas con prefijo "Millar"
+  const pref = unitKey === 'millar' ? 'MILLAR ' : '';
+  const menorLabel = pref + 'AL POR MENOR';
+  const mayorLabel = pref + 'AL POR MAYOR';
+  const finalLabel = pref + 'CLIENTE FINAL';
 
   const dpr = 2;
   const W = 1000;
@@ -1464,16 +1639,19 @@ async function buildAllPricesImageBlob(){
   ctx.textBaseline = 'middle';
 
   const colModelo = innerPad;
-  const colUnidad = innerPad + 380;
-  const colMenor = innerPad + 720;
-  const colMayor = W - innerPad;
+  const colUnidad = innerPad + 320;
+  const colMenor = innerPad + 590;
+  const colMayor = innerPad + 800;
+  const colFinal = W - innerPad;
 
   ctx.textAlign = 'left';
+  ctx.font = '900 11px Montserrat, sans-serif';
   ctx.fillText('MODELO', colModelo, y + colHeaderH/2);
   ctx.fillText('UNIDAD', colUnidad, y + colHeaderH/2);
   ctx.textAlign = 'right';
   ctx.fillText(menorLabel, colMenor, y + colHeaderH/2);
   ctx.fillText(mayorLabel, colMayor, y + colHeaderH/2);
+  ctx.fillText(finalLabel, colFinal, y + colHeaderH/2);
   y += colHeaderH;
 
   // === FILAS === (full width)
@@ -1527,20 +1705,26 @@ async function buildAllPricesImageBlob(){
     ctx.fillStyle = '#F5F3E6';
     ctx.fillText(uText, ux + 11, y + rowH/2 + 1);
 
-    // Precios: menor = precio_cliente_final · mayor = precio_menor
-    const menorPrice = (p.precio_cliente_final || 0) * factor;
-    const mayorPrice = (p.precio_menor || 0) * factor;
+    // Precios: menor = precio_menor · mayor = precio_mayor · cliente final = precio_cliente_final
+    const menorPrice = (p.precio_menor || 0) * factor;
+    const mayorPrice = (p.precio_mayor || 0) * factor;
+    const finalPrice = (p.precio_cliente_final || 0) * factor;
 
-    // Al por menor (cliente final) — verde oscuro
+    // Al por menor — verde oscuro
     ctx.textAlign = 'right';
     ctx.fillStyle = '#0D3827';
-    ctx.font = '900 16px Montserrat, sans-serif';
+    ctx.font = '900 15px Montserrat, sans-serif';
     ctx.fillText(fmtMoneyFull(menorPrice), colMenor, y + rowH/2);
 
-    // Al por mayor (menor) — naranja destacado
-    ctx.fillStyle = '#CC562E';
-    ctx.font = '900 16px Montserrat, sans-serif';
+    // Al por mayor — verde oscuro
+    ctx.fillStyle = '#0D3827';
+    ctx.font = '900 15px Montserrat, sans-serif';
     ctx.fillText(fmtMoneyFull(mayorPrice), colMayor, y + rowH/2);
+
+    // Cliente final — naranja destacado
+    ctx.fillStyle = '#CC562E';
+    ctx.font = '900 15px Montserrat, sans-serif';
+    ctx.fillText(fmtMoneyFull(finalPrice), colFinal, y + rowH/2);
 
     y += rowH;
   });
@@ -1728,18 +1912,27 @@ function copyWhatsAppMessage(){
   });
 }
 
+function copyClientInfoMessage(){
+  const text = '📋 Necesitaré la siguiente información:\n\n👤 Nombre\n🆔 DNI\n🏢 RUC (opcional)\n📍 Dirección\n📱 Teléfono';
+  copyTextToClipboard(text).then(function(ok){
+    toast(ok ? 'Mensaje de datos del cliente copiado' : 'No se pudo copiar', ok ? 'success' : 'error');
+  });
+}
+
 function copyNetwork(idx){
   const n = NETWORKS[idx]; if(!n) return;
-  const text = '*' + n.name + ' - FABREC*\n' + n.url;
+  const emoji = n.isChannel ? '📢' : (n.name==='TIKTOK' ? '🎵' : n.name==='FACEBOOK' ? '👍' : n.name==='INSTAGRAM' ? '📸' : '🔗');
+  const text = emoji + ' *' + n.name + ' - FABREC*\n' + n.url;
   copyTextToClipboard(text).then(function(ok){
     toast(ok ? 'Enlace de '+n.name+' copiado' : 'No se pudo copiar', ok ? 'success' : 'error');
   });
 }
 
 function copyAllNetworks(){
-  const header = 'Estas son las redes oficiales de FABREC:\n\n';
+  const header = '¡Síguenos en nuestras redes oficiales! 📱\n\n';
   const body = NETWORKS.map(function(n){
-    return '*' + n.name + '*\n' + n.url;
+    const emoji = n.isChannel ? '📢' : (n.name==='TIKTOK' ? '🎵' : n.name==='FACEBOOK' ? '👍' : n.name==='INSTAGRAM' ? '📸' : '🔗');
+    return emoji + ' *' + n.name + '*\n' + n.url;
   }).join('\n\n');
   copyTextToClipboard(header + body).then(function(ok){
     toast(ok ? 'Todas las redes copiadas' : 'No se pudo copiar', ok ? 'success' : 'error');
@@ -1780,6 +1973,7 @@ function renderQuoteWorkspace(){
     const calc = calcAQQuote();
     const autoTier = calc.totalPaqAll>=100 ? 'mayor' : 'menor';
     const selectedTier = aq.priceOverride || autoTier;
+    const cfMode = !!aq.clienteFinalMode;
 
     function tierBtnClass(tier){
       if(tier === selectedTier) return 'qw-mode-btn active';
@@ -1787,14 +1981,25 @@ function renderQuoteWorkspace(){
       return 'qw-mode-btn';
     }
 
-    const tierButtons = '<div class="qw-section">'
-      + '<div class="qw-label">Tipo de precio</div>'
-      + '<div class="qw-mode-toggle">'
-      + '<button class="'+tierBtnClass('menor')+'" onclick="setAQTier(\'menor\')">Al por menor</button>'
-      + '<button class="'+tierBtnClass('mayor')+'" onclick="setAQTier(\'mayor\')">Al por mayor</button>'
-      + '<button class="'+tierBtnClass('final')+'" onclick="setAQTier(\'final\')">Cliente final</button>'
+    // Toggle de cliente final (afecta qué precios se usan para menor/mayor)
+    const cfToggleHTML = '<div class="qw-section">'
+      + '<div class="qw-label">Cliente final</div>'
+      + '<div class="toggle-row '+(cfMode?'active':'')+'" onclick="toggleAQClienteFinal()">'
+      + '<div class="toggle-info"><div class="toggle-title">'+(cfMode?'Sí — precios de cliente final':'No — precios regulares de distribuidor')+'</div></div>'
+      + '<div class="toggle-switch"></div>'
       + '</div>'
       + '</div>';
+
+    // Botones de tipo de precio (en modo CF solo menor/mayor; en modo normal también final)
+    let tierButtonsHTML = '<div class="qw-section">'
+      + '<div class="qw-label">Tipo de precio' + (cfMode ? ' (cliente final)' : '') + '</div>'
+      + '<div class="qw-mode-toggle">'
+      + '<button class="'+tierBtnClass('menor')+'" onclick="setAQTier(\'menor\')">Al por menor'+(cfMode?' CF':'')+'</button>'
+      + '<button class="'+tierBtnClass('mayor')+'" onclick="setAQTier(\'mayor\')">Al por mayor'+(cfMode?' CF':'')+'</button>';
+    if(!cfMode){
+      tierButtonsHTML += '<button class="'+tierBtnClass('final')+'" onclick="setAQTier(\'final\')">Cliente final</button>';
+    }
+    tierButtonsHTML += '</div></div>';
 
     const addHTML = '<div class="qw-section">'
       + '<div class="qw-label">Añadir modelo</div>'
@@ -1823,7 +2028,7 @@ function renderQuoteWorkspace(){
 
     const totalHTML = '<div class="qw-total"><span>Total</span><span class="qw-total-amount">'+fmtMoneyFull(calc.total)+'</span></div>';
 
-    bodyHTML = tierButtons + addHTML + '<div class="qw-lines">'+linesHTML+'</div>' + totalHTML;
+    bodyHTML = cfToggleHTML + tierButtonsHTML + addHTML + '<div class="qw-lines">'+linesHTML+'</div>' + totalHTML;
   } else {
     const unitTgl = '<div class="qw-section">'
       + '<div class="qw-label">Unidad de precio</div>'
@@ -1896,6 +2101,7 @@ function unitPaqs(qty, unit, unitsPaq){
 function calcAQQuote(){
   if(!state.activeQuote) return {lines:[],totalPaqAll:0,total:0};
   const aq = state.activeQuote;
+  const cfMode = !!aq.clienteFinalMode;
   const linePaqs = aq.lines.map(function(l){
     const p = state.products.find(function(x){return x.producto===l.productName});
     if(!p)return 0;
@@ -1909,7 +2115,14 @@ function calcAQQuote(){
     const units = p.unidades_paquete || 100;
     const factor = unitFactor(l.unit, units);
     const tier = aq.priceOverride || autoTier;
-    const base = tier==='final' ? (p.precio_cliente_final||0) : tier==='mayor' ? (p.precio_mayor||0) : (p.precio_menor||0);
+    // En modo cliente final: menor = precio_cliente_final, mayor = precio_menor
+    // En modo normal: menor = precio_menor, mayor = precio_mayor, final = precio_cliente_final
+    let base;
+    if(cfMode){
+      base = tier==='mayor' ? (p.precio_menor||0) : (p.precio_cliente_final||0);
+    } else {
+      base = tier==='final' ? (p.precio_cliente_final||0) : tier==='mayor' ? (p.precio_mayor||0) : (p.precio_menor||0);
+    }
     const price = base * factor;
     return {productName:l.productName, qty:l.qty, unit:l.unit, tier:tier, price:price, subtotal:price*l.qty, linePaq:linePaqs[i]};
   }).filter(Boolean);
@@ -2217,12 +2430,15 @@ async function buildQuoteImageBlobFromLines(lines, subtitle, total){
 
   lines.forEach(function(l, i){
     if(i%2===0){ ctx.fillStyle = 'rgba(245,243,230,0.6)'; ctx.fillRect(0, y, W, rowH); }
-    ctx.fillStyle = '#0D3827'; ctx.font = '800 12px Montserrat, sans-serif'; ctx.textAlign = 'left';
-    ctx.fillText(displayName(l.productName), colProducto, y+rowH/2+4);
-
-    let qtyText;
     const p = state.products.find(function(x){return x.producto===l.productName});
     const units = (p && p.unidades_paquete) || 100;
+    // Modelo (línea 1) + unidades (línea 2 debajo, sin overlap)
+    ctx.fillStyle = '#0D3827'; ctx.font = '800 12px Montserrat, sans-serif'; ctx.textAlign = 'left';
+    ctx.fillText(displayName(l.productName), colProducto, y+rowH/2-4);
+    ctx.fillStyle = '#3A5A4A'; ctx.font = '700 9.5px Montserrat, sans-serif';
+    ctx.fillText(units+' u/paq', colProducto, y+rowH/2+10);
+
+    let qtyText;
     if(l.unit==='millar'){
       const paqPerMillar = 1000/units;
       const totalPaq = Math.round(l.qty * paqPerMillar * 100)/100;
@@ -2323,8 +2539,11 @@ async function buildPriceImageBlob(){
     const units = (p && p.unidades_paquete) || 100;
     const factor = unitFactor(unitKey, units);
     if(i%2===0){ ctx.fillStyle='rgba(245,243,230,0.6)'; ctx.fillRect(0, y, W, rowH); }
+    // Modelo (línea 1) + unidades (línea 2 debajo, sin overlap)
     ctx.fillStyle='#0D3827'; ctx.font='800 12px Montserrat, sans-serif'; ctx.textAlign='left';
-    ctx.fillText(displayName(name), colModelo, y+rowH/2+4);
+    ctx.fillText(displayName(name), colModelo, y+rowH/2-4);
+    ctx.fillStyle='#3A5A4A'; ctx.font='700 9.5px Montserrat, sans-serif';
+    ctx.fillText(units+' u/paq', colModelo, y+rowH/2+10);
     ctx.fillStyle='#3A5A4A'; ctx.font='700 11px Montserrat, sans-serif';
     ctx.fillText(unitLabel, colUnidad, y+rowH/2+4);
     const menorVal = p ? (p[menorField]||0) : 0;
@@ -2597,7 +2816,7 @@ function openEditSale(saleId){
   document.getElementById('nsDate').value = s.date || new Date().toISOString().split('T')[0];
   nsIndrive = !!s.indrive;
   nsAgency = !!(s.agencia_direccion || s.agencia_telefono);
-  nsVendor = !!(s.vendor && s.vendor !== (state.userName||'KING') && s.vendor !== 'King');
+  nsVendor = !!(s.vendor && s.vendor !== 'KING' && s.vendor !== 'King');
   if(nsAgency){
     document.getElementById('nsAgencyAddress').value = s.agencia_direccion || '';
     document.getElementById('nsAgencyPhone').value = formatPhonePE(s.agencia_telefono || '');
@@ -2650,7 +2869,7 @@ function nsCheckClientChanges(){
   const zone = document.getElementById('nsZone').value;
   const agencyAddress = nsAgency ? document.getElementById('nsAgencyAddress').value.trim() : '';
   const agencyPhone = nsAgency ? document.getElementById('nsAgencyPhone').value.trim() : '';
-  const vendor = nsVendor ? document.getElementById('nsVendor').value : (state.userName || 'King');
+  const vendor = nsVendor ? document.getElementById('nsVendor').value : 'King';
   const o = nsOriginalClientData;
   const changed = (o.name||'') !== name
     || (o.ruc||'') !== doc
@@ -2769,7 +2988,7 @@ async function saveNewSale(){
   const isProvince = (zone === 'Provincia');
   const agencyAddress = nsAgency ? document.getElementById('nsAgencyAddress').value.trim() : '';
   const agencyPhone = nsAgency ? document.getElementById('nsAgencyPhone').value.trim() : '';
-  const vendor = nsVendor ? document.getElementById('nsVendor').value : (state.userName || 'King');
+  const vendor = nsVendor ? document.getElementById('nsVendor').value : 'King';
 
   let client = nsSelectedClientId ? getClient(nsSelectedClientId) : null;
   if(client){
@@ -3382,10 +3601,33 @@ function openMergeSuggestions(){
   }
   clusters.forEach(function(cluster, idx){
     const primary = cluster[0];
-    mergeClusterState[idx] = { enabled: true, primaryId: primary.id, cluster: cluster };
+    // No seleccionar por defecto — el usuario eligirá cuáles fusionar
+    mergeClusterState[idx] = { enabled: false, primaryId: primary.id, cluster: cluster, mergedData: null };
   });
   renderMergeSuggestions();
   openModal('modalMergeSuggestions');
+}
+function computeMergedData(cluster, primaryId){
+  const primary = cluster.find(function(c){return c.id===primaryId}) || cluster[0];
+  if(!primary) return {};
+  const md = {
+    name: primary.name || '',
+    phone: primary.phone || '',
+    ruc: primary.ruc || '',
+    zone: primary.zone || '',
+    address: primary.address || '',
+    vendor: primary.vendor || ''
+  };
+  // Rellenar campos vacíos con datos de otros miembros
+  cluster.forEach(function(c){
+    if(c.id === primaryId) return;
+    if(!md.phone && c.phone) md.phone = c.phone;
+    if(!md.ruc && c.ruc) md.ruc = c.ruc;
+    if(!md.address && c.address) md.address = c.address;
+    if(!md.zone && c.zone) md.zone = c.zone;
+    if(!md.vendor && c.vendor) md.vendor = c.vendor;
+  });
+  return md;
 }
 function renderMergeSuggestions(){
   const body = document.getElementById('mergeSuggestionsBody');
@@ -3393,6 +3635,10 @@ function renderMergeSuggestions(){
   body.innerHTML = keys.map(function(key){
     const st = mergeClusterState[key];
     const cluster = st.cluster;
+    if(!st.mergedData){
+      st.mergedData = computeMergedData(cluster, st.primaryId);
+    }
+    const md = st.mergedData;
     const membersHTML = cluster.map(function(c){
       const isPrimary = st.primaryId === c.id;
       return '<div class="cluster-member '+(isPrimary?'primary':'')+'" onclick="setMergePrimary('+key+',\''+c.id+'\')">'
@@ -3401,15 +3647,38 @@ function renderMergeSuggestions(){
         + (isPrimary?'<span class="cluster-member-tag">Principal</span>':'')
         + '</div>';
     }).join('');
+    // Previsualización editable del cliente fusionado
+    const inputStyle = 'width:100%;padding:7px 9px;background:var(--surface-alt);border:1px solid var(--border);border-radius:6px;font-family:inherit;font-size:11.5px;font-weight:600;color:var(--text);outline:none;margin-bottom:5px;';
+    const previewHTML = '<div style="margin-top:10px;padding:12px;background:var(--surface);border:1px dashed var(--border-strong);border-radius:8px;">'
+      + '<div style="font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);margin-bottom:8px;">Vista previa del fusionado (editable)</div>'
+      + '<input type="text" value="'+esc(md.name||'')+'" placeholder="Nombre" oninput="setMergeField('+key+',\'name\',this.value)" style="'+inputStyle+'">'
+      + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;">'
+      + '<input type="text" value="'+esc(md.phone||'')+'" placeholder="Teléfono" oninput="setMergeField('+key+',\'phone\',this.value)" style="'+inputStyle+'margin-bottom:0;">'
+      + '<input type="text" value="'+esc(md.ruc||'')+'" placeholder="RUC/DNI" oninput="setMergeField('+key+',\'ruc\',this.value)" style="'+inputStyle+'margin-bottom:0;">'
+      + '<input type="text" value="'+esc(md.zone||'')+'" placeholder="Zona" oninput="setMergeField('+key+',\'zone\',this.value)" style="'+inputStyle+'margin-bottom:0;">'
+      + '<input type="text" value="'+esc(md.vendor||'')+'" placeholder="Vendedor" oninput="setMergeField('+key+',\'vendor\',this.value)" style="'+inputStyle+'margin-bottom:0;">'
+      + '</div>'
+      + '<input type="text" value="'+esc(md.address||'')+'" placeholder="Dirección" oninput="setMergeField('+key+',\'address\',this.value)" style="'+inputStyle+'">'
+      + '</div>';
     return '<div class="cluster-card '+(st.enabled?'enabled':'disabled')+'">'
       + '<div class="cluster-header"><div class="cluster-title-wrap"><div class="cluster-check" onclick="toggleClusterEnabled('+key+')"></div><div class="cluster-title">Grupo '+(parseInt(key)+1)+'</div></div><span class="cluster-count">'+cluster.length+' clientes</span></div>'
       + '<div class="cluster-members">'+membersHTML+'</div>'
+      + previewHTML
       + '</div>';
   }).join('');
   updateMergeAllBtn();
 }
+function setMergeField(key, field, value){
+  const st = mergeClusterState[key];
+  if(!st || !st.mergedData) return;
+  st.mergedData[field] = value;
+}
 function toggleClusterEnabled(idx){ mergeClusterState[idx].enabled = !mergeClusterState[idx].enabled; renderMergeSuggestions(); }
-function setMergePrimary(idx, clientId){ mergeClusterState[idx].primaryId = clientId; renderMergeSuggestions(); }
+function setMergePrimary(idx, clientId){
+  mergeClusterState[idx].primaryId = clientId;
+  mergeClusterState[idx].mergedData = computeMergedData(mergeClusterState[idx].cluster, clientId);
+  renderMergeSuggestions();
+}
 function updateMergeAllBtn(){
   const btn = document.getElementById('mergeAllBtn');
   const enabledClusters = Object.values(mergeClusterState).filter(function(s){return s.enabled});
@@ -3426,12 +3695,18 @@ async function confirmAllMerges(){
     const primaryId = st.primaryId;
     const primary = getClient(primaryId);
     if(!primary)return;
+    // Aplicar los datos editados del mergedData al cliente principal
+    const md = st.mergedData || {};
+    if(md.name) primary.name = md.name;
+    if(md.phone) primary.phone = md.phone;
+    if(md.ruc) primary.ruc = md.ruc;
+    if(md.address) primary.address = md.address;
+    if(md.zone) primary.zone = md.zone;
+    if(md.vendor) primary.vendor = md.vendor;
+    // Reasignar ventas de los duplicados al principal
     st.cluster.forEach(function(c){
       if(c.id===primaryId)return;
       state.sales.forEach(function(s){if(s.clientId===c.id)s.clientId=primaryId});
-      if(!primary.phone && c.phone) primary.phone = c.phone;
-      if(!primary.ruc && c.ruc) primary.ruc = c.ruc;
-      if(!primary.address && c.address) primary.address = c.address;
       mergedCount++;
     });
     const idsToRemove = st.cluster.filter(function(c){return c.id!==primaryId}).map(function(c){return c.id});
@@ -3443,23 +3718,90 @@ async function confirmAllMerges(){
 
 /* METRICS */
 function normalizeMedida(m){
-  const s = String(m||'').toUpperCase().trim();
+  const raw = String(m||'').trim();
+  // Primero revisar si hay un mapeo manual del usuario
+  if(state.medidaMappings && state.medidaMappings[raw]){
+    return state.medidaMappings[raw];
+  }
+  const s = raw.toUpperCase().replace(/\s+/g, ' ');
   if(!s)return 'Otros';
-  if(s.indexOf('3000')>=0)return '3 L';
-  if(s.indexOf('2500')>=0)return '2½ L';
-  if(s.indexOf('1500')>=0)return '1½ L';
-  if(s.indexOf('1000')>=0)return '1 L';
-  if(s.indexOf('900')>=0)return '900 ml';
-  if(s.indexOf('500')>=0)return '500 ml';
-  if(s.indexOf('450')>=0)return '450 ml';
-  if(s.indexOf('400')>=0)return '400 ml';
-  if(s.indexOf('350')>=0)return '350 ml';
-  if(s.indexOf('340')>=0)return '340 ml';
-  if(s.indexOf('300')>=0)return '300 ml';
-  if(s.indexOf('280')>=0)return '280 ml';
-  if(s.indexOf('250')>=0)return '250 ml';
-  if(s.indexOf('220')>=0)return '220 ml';
+  // Patrones de litros
+  if(s.indexOf('3 L')>=0 || s.indexOf('3L')>=0 || s.indexOf('3000')>=0 || s.indexOf('3.0')>=0) return '3 L';
+  if(s.indexOf('2.5 L')>=0 || s.indexOf('2 1/2')>=0 || s.indexOf('2500')>=0 || s.indexOf('2.5L')>=0) return '2½ L';
+  if(s.indexOf('1.5 L')>=0 || s.indexOf('1 1/2')>=0 || s.indexOf('1500')>=0 || s.indexOf('1.5L')>=0) return '1½ L';
+  if(s.indexOf('1 L')>=0 || s.indexOf('1L')>=0 || s.indexOf('1000')>=0 || s.indexOf('1.0')>=0) return '1 L';
+  // Patrones de ml
+  if(s.indexOf('900')>=0) return '900 ml';
+  if(s.indexOf('500')>=0) return '500 ml';
+  if(s.indexOf('450')>=0) return '450 ml';
+  if(s.indexOf('400')>=0) return '400 ml';
+  if(s.indexOf('350')>=0) return '350 ml';
+  if(s.indexOf('340')>=0) return '340 ml';
+  if(s.indexOf('300')>=0) return '300 ml';
+  if(s.indexOf('280')>=0) return '280 ml';
+  if(s.indexOf('250')>=0) return '250 ml';
+  if(s.indexOf('220')>=0) return '220 ml';
+  if(s.indexOf('200')>=0) return '200 ml';
+  if(s.indexOf('180')>=0) return '180 ml';
+  if(s.indexOf('150')>=0) return '150 ml';
+  if(s.indexOf('125')>=0) return '125 ml';
+  if(s.indexOf('100')>=0) return '100 ml';
   return 'Otros';
+}
+// Devuelve la lista de medidas crudas que se clasifican como "Otros"
+function getOtrosMedidas(){
+  const set = {};
+  state.sales.forEach(function(s){
+    (s.items||[]).forEach(function(it){
+      if(normalizeMedida(it.medida) === 'Otros'){
+        const raw = String(it.medida||'').trim();
+        if(raw) set[raw] = (set[raw]||0) + 1;
+      }
+    });
+  });
+  return Object.entries(set).map(function(e){return {medida:e[0], count:e[1]}}).sort(function(a,b){return b.count - a.count});
+}
+// Lista de categorías existentes para el select
+function getExistingMedidaCategories(){
+  const set = new Set();
+  state.products.forEach(function(p){ if(p.producto) set.add(displayName(p.producto)); });
+  // También incluir categorías normalizadas conocidas
+  ['3 L','2½ L','1½ L','1 L','900 ml','500 ml','450 ml','400 ml','350 ml','340 ml','300 ml','280 ml','250 ml','220 ml','200 ml','180 ml','150 ml','125 ml','100 ml'].forEach(function(c){set.add(c)});
+  return Array.from(set).sort();
+}
+function viewOtrosMedidas(){
+  const otros = getOtrosMedidas();
+  const body = document.getElementById('otrosMedidasBody');
+  if(otros.length === 0){
+    body.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text-muted);font-size:13px;font-weight:600;background:var(--surface-alt);border-radius:10px;">No hay botellas clasificadas como "Otros".</div>';
+    openModal('modalOtrosMedidas');
+    return;
+  }
+  const categories = getExistingMedidaCategories();
+  if(!state.medidaMappings) state.medidaMappings = {};
+  body.innerHTML = '<div style="font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:12px;line-height:1.5;">Estas medidas no coinciden con ningún modelo conocido. Selecciona a qué modelo existente debe vincularse cada una. El cambio se aplica al instante en todo el dashboard.</div>'
+    + otros.map(function(o){
+      const current = state.medidaMappings[o.medida] || '';
+      const safeMedida = esc(o.medida).replace(/'/g,"\\'");
+      return '<div style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--surface-alt);border-radius:8px;margin-bottom:8px;flex-wrap:wrap;">'
+        + '<div style="flex:1;min-width:140px;"><div style="font-weight:800;font-size:12.5px;color:var(--text);">'+esc(o.medida)+'</div><div style="font-size:10px;font-weight:600;color:var(--text-muted);margin-top:2px;">'+o.count+' venta'+(o.count===1?'':'s')+'</div></div>'
+        + '<select class="field-select" style="flex:1;min-width:160px;max-width:220px;padding:7px 10px;font-size:12px;" onchange="setMedidaMapping(\''+safeMedida+'\',this.value)">'
+        + '<option value="">— Sin vincular —</option>'
+        + categories.map(function(c){return '<option value="'+esc(c)+'"'+(c===current?' selected':'')+'>'+esc(c)+'</option>'}).join('')
+        + '</select>'
+        + '</div>';
+    }).join('');
+  openModal('modalOtrosMedidas');
+}
+function setMedidaMapping(rawMedida, target){
+  if(!state.medidaMappings) state.medidaMappings = {};
+  if(target){
+    state.medidaMappings[rawMedida] = target;
+  } else {
+    delete state.medidaMappings[rawMedida];
+  }
+  saveState();
+  toast('Vinculación '+(target?'guardada':'eliminada'),'success');
 }
 function getMonthsWithData(){
   const set = new Set();
@@ -3549,6 +3891,18 @@ function downloadChartImage(key, filename){
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
     toast('Imagen descargada','success');
   }catch(e){console.error(e);toast('Error','error')}
+}
+async function copyChartImage(key){
+  const chart = chartInstances[key]; if(!chart || !chart.canvas){toast('Gráfico no disponible','error');return}
+  try{
+    const src = chart.canvas;
+    const tmp = document.createElement('canvas'); tmp.width = src.width; tmp.height = src.height;
+    const ctx = tmp.getContext('2d'); ctx.fillStyle = '#F5F3E6'; ctx.fillRect(0,0,tmp.width,tmp.height);
+    ctx.drawImage(src,0,0);
+    const blob = await new Promise(function(resolve){ tmp.toBlob(resolve, 'image/png') });
+    const copied = await copyImageToClipboard(blob);
+    toast(copied ? 'Gráfica copiada al portapapeles' : 'No se pudo copiar', copied ? 'success' : 'error');
+  }catch(e){console.error(e);toast('Error al copiar','error')}
 }
 function renderChartRevenue(){
   destroyChart('revenue');
@@ -3699,6 +4053,516 @@ function renderChartTopClients(){
     options: {responsive:true, maintainAspectRatio:false, indexAxis:'y', plugins:{legend:{display:false}, tooltip:{callbacks:{label:function(c){return fmtMoneyFull(c.parsed.x)}}}}, scales:{x:{beginAtZero:true,grid:{color:CHART_GRID},ticks:{color:CHART_TICK,font:{family:'Montserrat',size:10},callback:function(v){return v>=1000?(v/1000).toFixed(0)+'k':v}}}, y:{grid:{display:false},ticks:{color:CHART_LEGEND,font:{family:'Montserrat',size:10,weight:'600'}}}}}
   });
 }
+
+/* REPORTE MENSUAL PDF */
+function openMonthlyReportModal(){
+  const sel = document.getElementById('reportMonthSelect');
+  if(!sel) return;
+  const months = getMonthsWithData();
+  const monthNames = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  if(months.length === 0){
+    sel.innerHTML = '<option value="">Sin ventas registradas</option>';
+  } else {
+    sel.innerHTML = months.map(function(key){
+      const p = key.split('-');
+      return '<option value="'+key+'">'+monthNames[parseInt(p[1])-1]+' '+p[0]+'</option>';
+    }).join('');
+    // Seleccionar automáticamente el último mes (más reciente)
+    sel.value = months[months.length - 1];
+  }
+  openModal('modalMonthlyReport');
+}
+
+function generateMonthlyReport(){
+  const sel = document.getElementById('reportMonthSelect');
+  const monthKey = sel ? sel.value : '';
+  if(!monthKey){ toast('Selecciona un mes','error'); return; }
+  closeModal('modalMonthlyReport');
+  try{
+    buildMonthlyReportPDF(monthKey);
+  }catch(err){ console.error(err); toast('Error generando reporte','error'); }
+}
+
+function buildMonthlyReportPDF(monthKey){
+  const { jsPDF } = window.jspdf;
+  if(!jsPDF){ toast('jsPDF no cargado','error'); return; }
+  const monthNames = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const parts = monthKey.split('-').map(Number);
+  const year = parts[0], month = parts[1];
+  const monthName = monthNames[month-1];
+
+  // Calcular mes anterior
+  let prevYear = year, prevMonth = month - 1;
+  if(prevMonth === 0){ prevMonth = 12; prevYear = year - 1; }
+  const prevMonthKey = prevYear + '-' + String(prevMonth).padStart(2,'0');
+  const prevMonthName = monthNames[prevMonth-1];
+
+  // Filtrar ventas del mes actual y anterior
+  const sales = state.sales.filter(function(s){ return s.date && s.date.substring(0,7) === monthKey; });
+  const prevSales = state.sales.filter(function(s){ return s.date && s.date.substring(0,7) === prevMonthKey; });
+  if(sales.length === 0){ toast('No hay ventas en '+monthName+' '+year,'error'); return; }
+
+  // Estadísticas del mes actual
+  const totalRevenue = sales.reduce(function(a,s){return a + (s.total||0)}, 0);
+  const totalBottles = sales.reduce(function(a,s){
+    return a + (s.items||[]).reduce(function(x,it){return x + (parseInt(it.cantidad)||0)}, 0);
+  }, 0);
+  const uniqueClients = new Set(sales.map(function(s){return s.clientId}).filter(Boolean)).size;
+  const avgTicket = totalRevenue / sales.length;
+
+  // Estadísticas del mes anterior
+  const prevRevenue = prevSales.reduce(function(a,s){return a + (s.total||0)}, 0);
+  const prevBottles = prevSales.reduce(function(a,s){
+    return a + (s.items||[]).reduce(function(x,it){return x + (parseInt(it.cantidad)||0)}, 0);
+  }, 0);
+  const prevUniqueClients = new Set(prevSales.map(function(s){return s.clientId}).filter(Boolean)).size;
+  const prevAvgTicket = prevSales.length > 0 ? prevRevenue / prevSales.length : 0;
+  const hasPrevData = prevSales.length > 0;
+
+  // Función para calcular variación porcentual
+  function varPct(curr, prev){
+    if(!hasPrevData || prev === 0) return null;
+    return ((curr - prev) / prev) * 100;
+  }
+
+  // Breakdown por zona
+  const zoneData = {};
+  sales.forEach(function(s){
+    const z = s.zone || 'Sin zona';
+    if(!zoneData[z]) zoneData[z] = {count:0, revenue:0, bottles:0};
+    zoneData[z].count++;
+    zoneData[z].revenue += (s.total||0);
+    zoneData[z].bottles += (s.items||[]).reduce(function(x,it){return x + (parseInt(it.cantidad)||0)}, 0);
+  });
+  const zoneEntries = Object.entries(zoneData).sort(function(a,b){return b[1].revenue - a[1].revenue});
+
+  // Breakdown por medida
+  const sizeData = {};
+  sales.forEach(function(s){
+    (s.items||[]).forEach(function(it){
+      const size = normalizeMedida(it.medida);
+      if(!sizeData[size]) sizeData[size] = {count:0, revenue:0};
+      sizeData[size].count += (parseInt(it.cantidad)||0);
+      sizeData[size].revenue += (it.total||0);
+    });
+  });
+  const sizeEntries = Object.entries(sizeData).sort(function(a,b){return b[1].revenue - a[1].revenue});
+
+  // Breakdown por vendedor
+  const vendorData = {};
+  sales.forEach(function(s){
+    const v = (s.vendor || 'KING').toUpperCase();
+    if(!vendorData[v]) vendorData[v] = {count:0, revenue:0};
+    vendorData[v].count++;
+    vendorData[v].revenue += (s.total||0);
+  });
+  const vendorEntries = Object.entries(vendorData).sort(function(a,b){return b[1].revenue - a[1].revenue});
+
+  // Helper para capturar gráficas
+  function captureChart(key){
+    const chart = chartInstances[key];
+    if(!chart || !chart.canvas) return null;
+    const src = chart.canvas;
+    const tmp = document.createElement('canvas');
+    tmp.width = src.width; tmp.height = src.height;
+    const ctx = tmp.getContext('2d');
+    ctx.fillStyle = '#F5F3E6'; ctx.fillRect(0,0,tmp.width,tmp.height);
+    ctx.drawImage(src, 0, 0);
+    return tmp.toDataURL('image/png');
+  }
+
+  // Crear PDF
+  const doc = new jsPDF({unit:'pt', format:'a4'});
+  const pageW = doc.internal.pageSize.getWidth();
+  const pageH = doc.internal.pageSize.getHeight();
+  const margin = 42;
+  const contentW = pageW - margin*2;
+  let y = 0;
+
+  function ensureSpace(needed){
+    if(y + needed > pageH - 40){ doc.addPage(); y = 50; }
+  }
+
+  // === HEADER ===
+  doc.setFillColor(13, 56, 39);
+  doc.rect(0, 0, pageW, 85, 'F');
+  doc.setFillColor(204, 86, 46);
+  doc.rect(0, 81, pageW, 4, 'F');
+  doc.setFillColor(204, 86, 46);
+  doc.circle(margin + 18, 42, 16, 'F');
+  doc.setTextColor(245, 243, 230);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(20);
+  doc.text('F', margin + 18, 48, {align:'center'});
+  doc.setFontSize(18);
+  doc.text('FABREC', margin + 44, 38);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.setTextColor(180, 190, 185);
+  doc.text('GESTIÓN COMERCIAL', margin + 44, 52);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(16);
+  doc.setTextColor(245, 243, 230);
+  doc.text('REPORTE MENSUAL', pageW - margin, 38, {align:'right'});
+  doc.setFontSize(11);
+  doc.setTextColor(204, 86, 46);
+  doc.text(monthName + ' ' + year, pageW - margin, 54, {align:'right'});
+
+  y = 110;
+
+  // === RESUMEN EJECUTIVO ===
+  doc.setTextColor(13, 56, 39);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(14);
+  doc.text('Resumen ejecutivo', margin, y);
+  y += 8;
+  doc.setDrawColor(204, 86, 46);
+  doc.setLineWidth(2);
+  doc.line(margin, y, margin + 70, y);
+  y += 18;
+
+  // Párrafo de introducción
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.setTextColor(60, 70, 65);
+  const introText = 'En ' + monthName + ' ' + year + ', FABREC registró ' + sales.length + ' ventas, generando ingresos totales por ' + fmtMoneyFull(totalRevenue) + ' y comercializando ' + totalBottles + ' botellas. El ticket promedio fue de ' + fmtMoneyFull(avgTicket) + ', atendiendo a ' + uniqueClients + ' cliente' + (uniqueClients===1?'':'s') + ' único' + (uniqueClients===1?'':'s') + '.';
+  const introLines = doc.splitTextToSize(introText, contentW);
+  doc.text(introLines, margin, y);
+  y += introLines.length * 13 + 12;
+
+  // Tarjetas de estadísticas (2x2) con comparación
+  function fmtVar(v){
+    if(v === null) return '';
+    const sign = v >= 0 ? '+' : '';
+    return ' (' + sign + v.toFixed(1) + '%)';
+  }
+  function fmtVarColor(v){
+    if(v === null) return [120, 120, 120];
+    return v >= 0 ? [34, 139, 34] : [204, 86, 46]; // verde si sube, naranja si baja
+  }
+
+  const stats = [
+    {label:'INGRESOS TOTALES', value: fmtMoneyFull(totalRevenue), varVal: varPct(totalRevenue, prevRevenue), color:[13,56,39]},
+    {label:'BOTELLAS VENDIDAS', value: String(totalBottles), varVal: varPct(totalBottles, prevBottles), color:[204,86,46]},
+    {label:'N° DE VENTAS', value: String(sales.length), varVal: varPct(sales.length, prevSales.length), color:[13,56,39]},
+    {label:'TICKET PROMEDIO', value: fmtMoneyFull(avgTicket), varVal: varPct(avgTicket, prevAvgTicket), color:[204,86,46]}
+  ];
+  const cardW = (contentW - 12) / 2;
+  const cardH = 56;
+  stats.forEach(function(st, i){
+    const col = i % 2;
+    const row = Math.floor(i / 2);
+    const cx = margin + col * (cardW + 12);
+    const cy = y + row * (cardH + 10);
+    doc.setFillColor(245, 243, 230);
+    doc.rect(cx, cy, cardW, cardH, 'F');
+    doc.setDrawColor(st.color[0], st.color[1], st.color[2]);
+    doc.setLineWidth(3);
+    doc.line(cx, cy, cx, cy + cardH);
+    doc.setTextColor(st.color[0], st.color[1], st.color[2]);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.text(st.label, cx + 14, cy + 18);
+    doc.setFontSize(15);
+    doc.setTextColor(13, 56, 39);
+    doc.text(st.value, cx + 14, cy + 36);
+    if(st.varVal !== null){
+      doc.setFontSize(8.5);
+      doc.setTextColor(fmtVarColor(st.varVal)[0], fmtVarColor(st.varVal)[1], fmtVarColor(st.varVal)[2]);
+      doc.text(fmtVar(st.varVal) + ' vs ' + prevMonthName, cx + 14, cy + 49);
+    } else {
+      doc.setFontSize(8.5);
+      doc.setTextColor(120, 120, 120);
+      doc.text('Sin datos previos', cx + 14, cy + 49);
+    }
+  });
+  y += cardH * 2 + 10 + 16;
+
+  // === COMPARATIVA CON MES ANTERIOR ===
+  const revVar = varPct(totalRevenue, prevRevenue);
+  const botVar = varPct(totalBottles, prevBottles);
+  ensureSpace(100);
+  doc.setTextColor(13, 56, 39);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(14);
+  doc.text('Comparativa con ' + prevMonthName, margin, y);
+  y += 8;
+  doc.setDrawColor(204, 86, 46);
+  doc.setLineWidth(2);
+  doc.line(margin, y, margin + 70, y);
+  y += 16;
+
+  if(hasPrevData){
+    // Tabla comparativa
+    doc.setFillColor(13, 56, 39);
+    doc.rect(margin, y, contentW, 22, 'F');
+    doc.setTextColor(245, 243, 230);
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.text('INDICADOR', margin + 10, y + 14);
+    doc.text(prevMonthName.toUpperCase(), margin + contentW * 0.5, y + 14, {align:'right'});
+    doc.text(monthName.toUpperCase(), margin + contentW * 0.75, y + 14, {align:'right'});
+    doc.text('VARIACIÓN', margin + contentW - 10, y + 14, {align:'right'});
+    y += 22;
+
+    const compRows = [
+      {label:'Ingresos', prev: fmtMoneyFull(prevRevenue), curr: fmtMoneyFull(totalRevenue), var: varPct(totalRevenue, prevRevenue)},
+      {label:'Botellas', prev: String(prevBottles), curr: String(totalBottles), var: varPct(totalBottles, prevBottles)},
+      {label:'N° ventas', prev: String(prevSales.length), curr: String(sales.length), var: varPct(sales.length, prevSales.length)},
+      {label:'Ticket prom.', prev: fmtMoneyFull(prevAvgTicket), curr: fmtMoneyFull(avgTicket), var: varPct(avgTicket, prevAvgTicket)},
+      {label:'Clientes únicos', prev: String(prevUniqueClients), curr: String(uniqueClients), var: varPct(uniqueClients, prevUniqueClients)}
+    ];
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9.5);
+    compRows.forEach(function(r, i){
+      if(i % 2 === 0){ doc.setFillColor(245, 243, 230); doc.rect(margin, y, contentW, 20, 'F'); }
+      doc.setTextColor(13, 56, 39);
+      doc.text(r.label, margin + 10, y + 13);
+      doc.setTextColor(90, 117, 101);
+      doc.text(r.prev, margin + contentW * 0.5, y + 13, {align:'right'});
+      doc.setTextColor(13, 56, 39);
+      doc.setFont('helvetica', 'bold');
+      doc.text(r.curr, margin + contentW * 0.75, y + 13, {align:'right'});
+      const vc = fmtVarColor(r.var);
+      doc.setTextColor(vc[0], vc[1], vc[2]);
+      doc.text(fmtVar(r.var), margin + contentW - 10, y + 13, {align:'right'});
+      doc.setFont('helvetica', 'normal');
+      y += 20;
+    });
+    y += 14;
+
+    // Párrafo de análisis comparativo
+    ensureSpace(60);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.setTextColor(60, 70, 65);
+    let analysis = 'Comparado con ' + prevMonthName + ', ';
+    if(revVar !== null){
+      if(revVar >= 0){
+        analysis += 'los ingresos aumentaron un ' + revVar.toFixed(1) + '%, ';
+      } else {
+        analysis += 'los ingresos disminuyeron un ' + Math.abs(revVar).toFixed(1) + '%, ';
+      }
+    }
+    if(botVar !== null){
+      if(botVar >= 0){
+        analysis += 'y el volumen de botellas creció un ' + botVar.toFixed(1) + '%. ';
+      } else {
+        analysis += 'y el volumen de botellas bajó un ' + Math.abs(botVar).toFixed(1) + '%. ';
+      }
+    } else {
+      analysis += '. ';
+    }
+    analysis += 'Esto refleja la dinámica comercial del periodo y permite identificar tendencias de crecimiento o áreas de oportunidad para el próximo mes.';
+    const analysisLines = doc.splitTextToSize(analysis, contentW);
+    doc.text(analysisLines, margin, y);
+    y += analysisLines.length * 13 + 16;
+  } else {
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.setTextColor(120, 120, 120);
+    doc.text('No hay datos del mes anterior (' + prevMonthName + ') para comparar.', margin, y + 4);
+    y += 24;
+  }
+
+  // === GRÁFICA DE INGRESOS ===
+  const revImg = captureChart('revenue');
+  if(revImg){
+    ensureSpace(200);
+    doc.setTextColor(13, 56, 39);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(14);
+    doc.text('Evolución de ingresos', margin, y);
+    y += 8;
+    doc.setDrawColor(204, 86, 46);
+    doc.setLineWidth(2);
+    doc.line(margin, y, margin + 70, y);
+    y += 12;
+    const imgW = contentW;
+    const imgH = imgW * 0.4;
+    doc.addImage(revImg, 'PNG', margin, y, imgW, imgH);
+    y += imgH + 20;
+  }
+
+  // === DISTRIBUCIÓN POR ZONA ===
+  ensureSpace(120);
+  doc.setTextColor(13, 56, 39);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(14);
+  doc.text('Distribución por zona', margin, y);
+  y += 8;
+  doc.setDrawColor(204, 86, 46);
+  doc.setLineWidth(2);
+  doc.line(margin, y, margin + 70, y);
+  y += 16;
+
+  doc.setFillColor(13, 56, 39);
+  doc.rect(margin, y, contentW, 22, 'F');
+  doc.setTextColor(245, 243, 230);
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'bold');
+  doc.text('ZONA', margin + 10, y + 14);
+  doc.text('VENTAS', margin + contentW * 0.5, y + 14, {align:'right'});
+  doc.text('BOTELLAS', margin + contentW * 0.72, y + 14, {align:'right'});
+  doc.text('INGRESOS', margin + contentW - 10, y + 14, {align:'right'});
+  y += 22;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9.5);
+  zoneEntries.forEach(function(e, i){
+    if(y > pageH - 40){ doc.addPage(); y = 50; }
+    if(i % 2 === 0){ doc.setFillColor(245, 243, 230); doc.rect(margin, y, contentW, 20, 'F'); }
+    doc.setTextColor(13, 56, 39);
+    doc.text(String(e[0]), margin + 10, y + 13);
+    doc.setTextColor(90, 117, 101);
+    doc.text(String(e[1].count), margin + contentW * 0.5, y + 13, {align:'right'});
+    doc.text(String(e[1].bottles), margin + contentW * 0.72, y + 13, {align:'right'});
+    doc.setTextColor(13, 56, 39);
+    doc.setFont('helvetica', 'bold');
+    doc.text(fmtMoneyFull(e[1].revenue), margin + contentW - 10, y + 13, {align:'right'});
+    doc.setFont('helvetica', 'normal');
+    y += 20;
+  });
+  y += 16;
+
+  // === GRÁFICA DE ZONAS ===
+  const zoneImg = captureChart('zones');
+  if(zoneImg){
+    ensureSpace(200);
+    const imgW = contentW;
+    const imgH = imgW * 0.4;
+    doc.addImage(zoneImg, 'PNG', margin, y, imgW, imgH);
+    y += imgH + 20;
+  }
+
+  // === VENTAS POR MEDIDA ===
+  ensureSpace(120);
+  if(y > pageH - 120){ doc.addPage(); y = 50; }
+  doc.setTextColor(13, 56, 39);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(14);
+  doc.text('Ventas por medida', margin, y);
+  y += 8;
+  doc.setDrawColor(204, 86, 46);
+  doc.setLineWidth(2);
+  doc.line(margin, y, margin + 70, y);
+  y += 16;
+
+  doc.setFillColor(13, 56, 39);
+  doc.rect(margin, y, contentW, 22, 'F');
+  doc.setTextColor(245, 243, 230);
+  doc.setFontSize(9);
+  doc.text('MEDIDA', margin + 10, y + 14);
+  doc.text('BOTELLAS', margin + contentW * 0.6, y + 14, {align:'right'});
+  doc.text('INGRESOS', margin + contentW - 10, y + 14, {align:'right'});
+  y += 22;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9.5);
+  sizeEntries.forEach(function(e, i){
+    if(y > pageH - 40){ doc.addPage(); y = 50; }
+    if(i % 2 === 0){ doc.setFillColor(245, 243, 230); doc.rect(margin, y, contentW, 20, 'F'); }
+    doc.setTextColor(13, 56, 39);
+    doc.text(String(e[0]), margin + 10, y + 13);
+    doc.setTextColor(90, 117, 101);
+    doc.text(String(e[1].count), margin + contentW * 0.6, y + 13, {align:'right'});
+    doc.setTextColor(13, 56, 39);
+    doc.setFont('helvetica', 'bold');
+    doc.text(fmtMoneyFull(e[1].revenue), margin + contentW - 10, y + 13, {align:'right'});
+    doc.setFont('helvetica', 'normal');
+    y += 20;
+  });
+  y += 16;
+
+  // === GRÁFICA DE MEDIDAS ===
+  const sizeImg = captureChart('sizes');
+  if(sizeImg){
+    ensureSpace(200);
+    const imgW = contentW;
+    const imgH = imgW * 0.35;
+    doc.addImage(sizeImg, 'PNG', margin, y, imgW, imgH);
+    y += imgH + 20;
+  }
+
+  // === DISTRIBUCIÓN POR VENDEDOR ===
+  ensureSpace(120);
+  if(y > pageH - 120){ doc.addPage(); y = 50; }
+  doc.setTextColor(13, 56, 39);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(14);
+  doc.text('Distribución por vendedor', margin, y);
+  y += 8;
+  doc.setDrawColor(204, 86, 46);
+  doc.setLineWidth(2);
+  doc.line(margin, y, margin + 70, y);
+  y += 16;
+
+  doc.setFillColor(13, 56, 39);
+  doc.rect(margin, y, contentW, 22, 'F');
+  doc.setTextColor(245, 243, 230);
+  doc.setFontSize(9);
+  doc.text('VENDEDOR', margin + 10, y + 14);
+  doc.text('VENTAS', margin + contentW * 0.6, y + 14, {align:'right'});
+  doc.text('INGRESOS', margin + contentW - 10, y + 14, {align:'right'});
+  y += 22;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9.5);
+  vendorEntries.forEach(function(e, i){
+    if(y > pageH - 40){ doc.addPage(); y = 50; }
+    if(i % 2 === 0){ doc.setFillColor(245, 243, 230); doc.rect(margin, y, contentW, 20, 'F'); }
+    doc.setTextColor(13, 56, 39);
+    doc.text(String(e[0]), margin + 10, y + 13);
+    doc.setTextColor(90, 117, 101);
+    doc.text(String(e[1].count), margin + contentW * 0.6, y + 13, {align:'right'});
+    doc.setTextColor(13, 56, 39);
+    doc.setFont('helvetica', 'bold');
+    doc.text(fmtMoneyFull(e[1].revenue), margin + contentW - 10, y + 13, {align:'right'});
+    doc.setFont('helvetica', 'normal');
+    y += 20;
+  });
+  y += 16;
+
+  // === CONCLUSIÓN ===
+  ensureSpace(80);
+  if(y > pageH - 80){ doc.addPage(); y = 50; }
+  doc.setTextColor(13, 56, 39);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(14);
+  doc.text('Conclusiones', margin, y);
+  y += 8;
+  doc.setDrawColor(204, 86, 46);
+  doc.setLineWidth(2);
+  doc.line(margin, y, margin + 70, y);
+  y += 14;
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.setTextColor(60, 70, 65);
+  const topZone = zoneEntries[0] ? zoneEntries[0][0] : '—';
+  const topVendor = vendorEntries[0] ? vendorEntries[0][0] : '—';
+  const topSize = sizeEntries[0] ? sizeEntries[0][0] : '—';
+  const conclusion = 'Durante ' + monthName + ' ' + year + ', la zona con mayor contribución fue ' + topZone + ', liderando en ingresos. El vendedor con mejor desempeño fue ' + topVendor + ', y la medida más vendida fue ' + topSize + '. ' + (hasPrevData ? (revVar !== null && revVar >= 0 ? 'El crecimiento respecto al mes anterior es positivo y refleja una buena gestión comercial.' : 'La caída respecto al mes anterior indica que se deben reforzar las estrategias comerciales.') : 'No hay datos del mes anterior para evaluar tendencias.') + ' Se recomienda mantener las estrategias que han demostrado buenos resultados y enfocarse en las áreas de oportunidad identificadas para el próximo periodo.';
+  const conclusionLines = doc.splitTextToSize(conclusion, contentW);
+  doc.text(conclusionLines, margin, y);
+  y += conclusionLines.length * 13 + 10;
+
+  // === FOOTER en cada página ===
+  const pageCount = doc.internal.getNumberOfPages();
+  for(let i = 1; i <= pageCount; i++){
+    doc.setPage(i);
+    doc.setFillColor(13, 56, 39);
+    doc.rect(0, pageH - 28, pageW, 28, 'F');
+    doc.setFillColor(204, 86, 46);
+    doc.rect(0, pageH - 28, pageW, 3, 'F');
+    doc.setTextColor(245, 243, 230);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.text('FABREC · Reporte mensual · ' + monthName + ' ' + year, margin, pageH - 10);
+    doc.text('Página ' + i + ' / ' + pageCount, pageW - margin, pageH - 10, {align:'right'});
+  }
+
+  doc.save('Reporte Mensual - ' + monthName + ' ' + year + '.pdf');
+  toast('Reporte de ' + monthName + ' ' + year + ' generado','success');
+}
+
 
 /* DELETE ALL */
 function openDeleteAllModal(){ document.getElementById('deleteConfirmInput').value=''; openModal('modalDeleteAll'); }
@@ -3864,7 +4728,6 @@ window.addEventListener('DOMContentLoaded', async function(){
   document.body.classList.toggle('sidebar-collapsed', !!state.ui.sidebarCollapsed);
   updateMemory();
   ['editClientPhone','editAgencyPhone','nsPhone','nsAgencyPhone'].forEach(setupPhoneInput);
-  updateUserUI();
   applyChartTheme();
   renderProducts();
   renderQuoteWorkspace();
