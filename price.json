@@ -3,137 +3,119 @@
   "tipo_documento": "tarifario_oficial_0001",
   "autorizado_por": "Gladys Garro",
   "cargo": "Gerencia General",
-  "fecha_emision": "2026-10-28T15:46:12.330Z",
-  "vigencia": {
-    "desde": "2026-10-01",
-    "hasta": "2026-10-31"
-  },
+  "fecha_emision": "2026-11-09T18:15:35.074Z",
   "total_productos": 16,
   "precios": [
     {
       "producto": "220 ml",
-      "precio_menor": 19.5,
-      "precio_mayor": 19,
-      "precio_cliente_final": 21,
+      "precio_menor": 20.5,
+      "precio_mayor": 20,
+      "precio_cliente_final": 21.5,
       "unidades_paquete": 100
     },
     {
       "producto": "250 ml",
-      "precio_menor": 19.5,
-      "precio_mayor": 19,
-      "precio_cliente_final": 21,
+      "precio_menor": 20.5,
+      "precio_mayor": 20,
+      "precio_cliente_final": 21.5,
       "unidades_paquete": 100
     },
     {
       "producto": "280 ml",
-      "precio_menor": 19.5,
-      "precio_mayor": 19,
-      "precio_cliente_final": 21,
+      "precio_menor": 20.5,
+      "precio_mayor": 20,
+      "precio_cliente_final": 21.5,
       "unidades_paquete": 100
     },
     {
       "producto": "300 ml",
-      "precio_menor": 19.5,
-      "precio_mayor": 19,
-      "precio_cliente_final": 21,
+      "precio_menor": 20.5,
+      "precio_mayor": 20,
+      "precio_cliente_final": 21.5,
       "unidades_paquete": 100
     },
     {
       "producto": "340 ml",
-      "precio_menor": 19.5,
-      "precio_mayor": 19,
-      "precio_cliente_final": 21,
-      "unidades_paquete": 100
-    },
-    {
-      "producto": "350 ml",
-      "precio_menor": 19.5,
-      "precio_mayor": 19,
-      "precio_cliente_final": 21,
+      "precio_menor": 20.5,
+      "precio_mayor": 20,
+      "precio_cliente_final": 21.5,
       "unidades_paquete": 100
     },
     {
       "producto": "400 ml",
-      "precio_menor": 20.5,
-      "precio_mayor": 20,
-      "precio_cliente_final": 22,
+      "precio_menor": 21.5,
+      "precio_mayor": 21,
+      "precio_cliente_final": 22.5,
       "unidades_paquete": 100
     },
     {
       "producto": "450 ml",
-      "precio_menor": 20.5,
-      "precio_mayor": 20,
-      "precio_cliente_final": 22,
+      "precio_menor": 21.5,
+      "precio_mayor": 21,
+      "precio_cliente_final": 22.5,
       "unidades_paquete": 100
     },
     {
       "producto": "500 ml Néctar",
-      "precio_menor": 21.5,
-      "precio_mayor": 21,
-      "precio_cliente_final": 22,
+      "precio_menor": 22.5,
+      "precio_mayor": 22,
+      "precio_cliente_final": 23.5,
       "unidades_paquete": 100
     },
     {
       "producto": "500 ml Gorda",
-      "precio_menor": 22.5,
-      "precio_mayor": 22,
-      "precio_cliente_final": 24,
+      "precio_menor": 23.5,
+      "precio_mayor": 23,
+      "precio_cliente_final": 24.5,
       "unidades_paquete": 100
     },
     {
       "producto": "500 ml GH",
-      "precio_menor": 22.5,
-      "precio_mayor": 22,
-      "precio_cliente_final": 24,
-      "unidades_paquete": 100
-    },
-    {
-      "producto": "625 ml",
-      "precio_menor": 23,
-      "precio_mayor": 22,
-      "precio_cliente_final": 24,
+      "precio_menor": 23.5,
+      "precio_mayor": 23,
+      "precio_cliente_final": 24.5,
       "unidades_paquete": 100
     },
     {
       "producto": "900 ml",
       "precio_menor": 17,
       "precio_mayor": 16.5,
-      "precio_cliente_final": 18.5,
+      "precio_cliente_final": 18,
       "unidades_paquete": 50
     },
     {
-      "producto": "1000 ml",
+      "producto": "Litro",
       "precio_menor": 17,
       "precio_mayor": 16.5,
-      "precio_cliente_final": 18.5,
+      "precio_cliente_final": 18,
       "unidades_paquete": 50
     },
     {
-      "producto": "1500 ml",
-      "precio_menor": 26,
-      "precio_mayor": 25,
-      "precio_cliente_final": 27,
+      "producto": "1 1/2 Litro",
+      "precio_menor": 27.5,
+      "precio_mayor": 27,
+      "precio_cliente_final": 28.5,
       "unidades_paquete": 50
     },
     {
-      "producto": "2500 ml",
-      "precio_menor": 29.5,
-      "precio_mayor": 29,
-      "precio_cliente_final": 32,
+      "producto": "2 1/2 Litros",
+      "precio_menor": 30.5,
+      "precio_mayor": 30,
+      "precio_cliente_final": 31.5,
       "unidades_paquete": 50
     },
     {
-      "producto": "3000 ml",
-      "precio_menor": 36,
-      "precio_mayor": 35,
-      "precio_cliente_final": 37,
+      "producto": "3 Litros",
+      "precio_menor": 37.5,
+      "precio_mayor": 37,
+      "precio_cliente_final": 38.5,
       "unidades_paquete": 50
     },
     {
-      "producto": "3000 ml (verde)",
-      "precio_menor": 29,
+      "producto": "3 Litros (Verde)",
+      "precio_menor": 28.5,
       "precio_mayor": 28,
-      "precio_cliente_final": 30,
+      "precio_cliente_final": 29.5,
       "unidades_paquete": 50
     }
   ]
