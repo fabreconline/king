@@ -8,7 +8,7 @@
   "precios": [
     {
       "producto": "220 ml",
-      "precio_menor": 20.5,
+      "precio_menor": 20,
       "precio_mayor": 20,
       "precio_cliente_final": 21.5,
       "unidades_paquete": 100
